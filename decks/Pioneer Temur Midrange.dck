@@ -1,0 +1,31 @@
+1 [WAR:115] Bolt Bend
+4 [ELD:115] Bonecrusher Giant
+3 [KLD:244] Botanical Sanctum
+4 [RNA:246] Breeding Pool
+4 [KTK:106] Crater's Claws
+2 [STX:177] Decisive Denial
+4 [M15:173] Elvish Mystic
+3 [AFR:278] Forest
+4 [DOM:240] Hinterland Harbor
+1 [ZNR:186] Inscription of Abundance
+2 [WAR:232*] Kiora, Behemoth Beckoner
+4 [ELD:165] Lovestruck Beast
+2 [AFR:274] Mountain
+2 [ELD:171] Questing Beast
+3 [KTK:144] Rattleclaw Mystic
+1 [AKH:182] Rhonas the Indomitable
+4 [XLN:256] Rootbound Crag
+3 [KTK:197] Savage Knuckleblade
+4 [RNA:259] Stomping Ground
+2 [KTK:56] Stubborn Denial
+3 [KTK:207] Temur Ascendancy
+SB: 1 [THS:112] Anger of the Gods
+SB: 3 [FRF:35] Frost Walker
+SB: 1 [KTK:42] Icy Blast
+SB: 2 [FRF:46] Reality Shift
+SB: 3 [M21:204] Scavenging Ooze
+SB: 1 [KTK:56] Stubborn Denial
+SB: 1 [KTK:207] Temur Ascendancy
+SB: 2 [KTK:157] Windstorm
+LAYOUT MAIN:(1,5)(CMC,false,62)|([KLD:244],[KLD:244],[KLD:244],[RNA:246],[RNA:246],[RNA:246],[RNA:246],[AFR:278],[AFR:278],[AFR:278],[DOM:240],[DOM:240],[DOM:240],[DOM:240],[AFR:274],[AFR:274],[XLN:256],[XLN:256],[XLN:256],[XLN:256],[RNA:259],[RNA:259],[RNA:259],[RNA:259])([KTK:106],[KTK:106],[KTK:106],[KTK:106],[M15:173],[M15:173],[M15:173],[M15:173],[KTK:56],[KTK:56])([STX:177],[STX:177],[ZNR:186],[KTK:144],[KTK:144],[KTK:144])([ELD:115],[ELD:115],[ELD:115],[ELD:115],[WAR:232*],[WAR:232*],[ELD:165],[ELD:165],[ELD:165],[ELD:165],[AKH:182],[KTK:197],[KTK:197],[KTK:197],[KTK:207],[KTK:207],[KTK:207])([WAR:115],[ELD:171],[ELD:171])
+LAYOUT SIDEBOARD:(1,3)(CMC,false,45)|([KTK:42],[KTK:56],[KTK:157],[KTK:157])([FRF:35],[FRF:35],[FRF:35],[FRF:46],[FRF:46],[M21:204],[M21:204],[M21:204])([THS:112],[KTK:207])

@@ -1,0 +1,81 @@
+1 [IKO:40] Anticipate
+1 [ELD:331] Arcane Signet
+1 [C19:23] Backdraft Hellkite
+1 [NPH:103] Beast Within
+1 [IKO:180] Channeled Force
+1 [AFC:117] Chaos Warp
+1 [BFZ:235] Cinder Glade
+1 [WWK:76] Comet Storm
+1 [ELD:333] Command Tower
+1 [WAR:45] Commence the Endgame
+1 [ULG:98] Crop Rotation
+1 [KLD:203] Cultivator's Caravan
+1 [C20:59] Curious Herd
+1 [KTK:36] Dig Through Time
+1 [RIX:99] Dire Fleet Daredevil
+1 [M21:142] Double Vision
+1 [RNA:99] Electrodominance
+1 [CON:142] Exotic Orchard
+1 [INV:57] Fact or Fiction
+1 [KTK:132] Feed the Clan
+1 [ORI:145] Fiery Impulse
+6 [AFR:278] Forest
+1 [ULG:32] Frantic Search
+1 [KTK:234] Frontier Bivouac
+1 [RNA:178] Growth Spiral
+1 [ZEN:165] Harrow
+1 [OGW:172] Holdout Settlement
+1 [SCG:121] Hunting Pack
+1 [KTK:42] Icy Blast
+1 [VIS:34] Impulse
+1 [ZNR:387] Into the Roil
+10 [AFR:266] Island
+1 [ORI:61] Jace's Sanctum
+1 [TSP:202] Krosan Grip
+1 [C19:9] Leadership Vacuum
+1 [MRD:199] Lightning Greaves
+1 [KLD:56] Metallurgic Summonings
+1 [GRN:44] Mission Briefing
+1 [STA:106] Mizzix's Mastery
+8 [AFR:274] Mountain
+1 [TSR:312] Mystic Confluence
+1 [ELD:247] Mystic Sanctuary
+1 [WAR:61*] Narset, Parter of Veils
+1 [BFZ:179] Natural Connection
+1 [EMN:72] Niblis of Frost
+1 [M21:59] Opt
+1 [M15:75] Polymorphist's Jest
+1 [PLC:44] Pongify
+1 [5ED:262] Pyroblast
+1 [WAR:211*] Ral, Storm Conduit
+1 [FRF:46] Reality Shift
+1 [ORI:195] Reclaim
+1 [XLN:256] Rootbound Crag
+1 [GTC:195] Simic Charm
+1 [ONS:238] Starstorm
+1 [M21:355] Sublime Epiphany
+1 [DOM:247] Sulfur Falls
+1 [FRF:54] Supplant Form
+1 [HOU:49] Supreme Will
+1 [HOU:184] Survivors' Encampment
+1 [HOU:50] Swarm Intelligence
+1 [M12:219] Swiftfoot Boots
+1 [ORI:78] Talent of the Telepath
+1 [M13:72] Talrand, Sky Summoner
+1 [THB:347*] Temple of Abandon
+1 [M21:252] Temple of Epiphany
+1 [M21:254] Temple of Mystery
+1 [THB:307] Thassa's Intervention
+1 [M21:165] Thrill of Possibility
+1 [KLD:67] Torrential Gearhulk
+1 [C20:70] Twinning Staff
+1 [BNG:143] Unravel the Aether
+1 [M21:82] Unsubstantiate
+1 [FUT:166] Veilstone Amulet
+1 [DTK:167] Volcanic Vision
+1 [THB:310] Wavebreak Hippocamp
+1 [RNA:149] Wilderness Reclamation
+1 [ZNR:80] Silundi Vision
+SB: 1 [C20:9] Kalamax, the Stormsire
+LAYOUT MAIN:(1,9)(CMC,false,44)|([BFZ:235],[ELD:333],[CON:142],[AFR:278],[AFR:278],[AFR:278],[AFR:278],[AFR:278],[AFR:278],[KTK:234],[OGW:172],[AFR:266],[AFR:266],[AFR:266],[AFR:266],[AFR:266],[AFR:266],[AFR:266],[AFR:266],[AFR:266],[AFR:266],[AFR:274],[AFR:274],[AFR:274],[AFR:274],[AFR:274],[AFR:274],[AFR:274],[AFR:274],[ELD:247],[XLN:256],[DOM:247],[HOU:184],[M21:252],[M21:254],[THB:347*])([ULG:98],[ORI:145],[KTK:42],[M21:59],[PLC:44],[5ED:262],[ORI:195])([IKO:40],[ELD:331],[WWK:76],[RIX:99],[RNA:99],[KTK:132],[RNA:178],[VIS:34],[ZNR:387],[MRD:199],[GRN:44],[FRF:46],[GTC:195],[ONS:238],[M12:219],[THB:307],[M21:165],[BNG:143],[M21:82])([NPH:103],[AFC:117],[KLD:203],[ULG:32],[ZEN:165],[TSP:202],[C19:9],[BFZ:179],[M15:75],[HOU:49],[C20:70],[FUT:166],[THB:310],[ZNR:80],[WAR:61*])([IKO:180],[C20:59],[INV:57],[ORI:61],[STA:106],[EMN:72],[ORI:78],[M13:72],[RNA:149],[WAR:211*])([C19:23],[M21:142],[KLD:56],[TSR:312])([WAR:45],[M21:355],[FRF:54],[KLD:67])([SCG:121],[HOU:50],[DTK:167])([KTK:36])
+LAYOUT SIDEBOARD:(1,1)(CMC,false,45)|([C20:9])
