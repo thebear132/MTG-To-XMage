@@ -1,5 +1,8 @@
+import argparse
 from ast import MatchSingleton
 from cgitb import html
+from sre_constants import INFO
+from tokenize import String
 from pip import main
 import requests
 import json
@@ -19,16 +22,17 @@ https://api.moxfield.com/v2/decks/all/	Lister alle public decks på moxfield
 
 _____TODO_____
 Enable logging with -v https://stackoverflow.com/questions/6579496/using-print-statements-only-to-debug
-Use multiple sites for downloading
-    Moxfield - Done
+
+    Moxfield    - Done
     mtggoldfish - Done
-    tappedout
-    archideckt
+    tappedout   - 
+    archideckt  - 
+    deckstats   - 
 When format is edh, the commander has to be the only card in the sideboard (Moxfield)
 """
 
 
-def debug(args): # Enable debugging printing
+def debug(args):  # Enable debugging printing
     print("debug")
 
 
@@ -103,7 +107,7 @@ def convertDeckToXmage(deckList):
         if "//" in name:  # Fix adventure cards e.g. Bonecrusher Giant // Stomp => Bonecrusher Giant
             problematicCards += name + "| "
             name = name[:name.index("//")-1]
-        
+
         line = f"{quantity} [{set}:{setNr}] {name}\n"
         xDeck += line
     for card in deckList["sideboard"]:
@@ -115,13 +119,14 @@ def convertDeckToXmage(deckList):
         if "//" in name:
             problematicCards += "[SB]" + name + "| "
             name = name[:name.index("//")-1]
-        
+
         line = f"SB: {quantity} [{set}:{setNr}] {name}\n"
         xDeck += line
-        
+
     if problematicCards != "":
-        print("     [!]", problematicCards.count('|'), "card(s) might not have been imported. Run in verbose mode (-v) for more info")
-        #logging the problematic cards here
+        print("     [!]", problematicCards.count(
+            '|'), "card(s) might not have been imported. Run in verbose mode (-v) for more info")
+        # logging the problematic cards here
     return xDeck
 
 
@@ -156,6 +161,7 @@ class MoxField:
         #print(f"Grabbing <{self.username}>'s public decks from " + url)
         r = requests.get(url)
         j = json.loads(r.text)
+        # printJson(j)
         return j
 
     def __getDecklist(self, deckId):
@@ -247,7 +253,6 @@ class MtgGoldfish:
             logResponse("__getUserDecks.log", r)
             print("An error accoured, check folder for logs")
 
-        # (?<=<td><a href=")(/deck/[0-9]{7})">(.*)</a>
         # Match group link and deckname
         regex = re.findall(
             r'(?<=<td><a href=")(/deck/[0-9]{7})">(.*)</a>', r.text)
@@ -369,9 +374,74 @@ class MtgGoldfish:
         a = 2+2
 
 
+
+
+# Needs to be changed with -v/-vv/-vvv
+# Critical, Error, Warning, Info, Debug
+logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.ERROR)
+
+def main():
+    parser = argparse.ArgumentParser(description='MTG-To-Xmage | Download your online MTG decks to the XMage format')
+    #Moxfield username
+    parser.add_argument('-moxfield', metavar="username", help='Your username for Moxfield')
+    #MtgGoldfish username
+    parser.add_argument('-mtggoldfish', metavar="username", help='Your username for MtgGoldfish')
+    
+    #Path to folder
+    parser.add_argument('-o', metavar="path", help='Path to the folder to download your decks to')
+    
+    #Verbose mode
+    parser.add_argument('-v', action='store_true', help='Verbose mode')
+    #Super Verbose mode
+    parser.add_argument('-vv', action='store_true', help='Super Verbose mode')
+    
+    #If no arguments were submitted, print help
+    args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
+    
+    if args.v:
+        print("Verbose mode")
+    elif args.vv:
+        print("Super verbose mode")
+    """
+    logging.debug("Debug")
+    logging.info("Info")
+    logging.warning("Warning")
+    logging.error("Error")
+    logging.critical("Critical")
+    """
+    
+    
+    config = {"folder": "", "moxfield": "", "mtggoldfish": "" }
+    if os.path.exists("./config.json"): # If there exists a 
+        tmp = open("./config.json", "r").read()
+        config = json.loads(tmp)
+    
+    if args.o is not None:              # If -o [path] is set, update the value
+        config["folder"] = args.o
+    else:
+        if config["folder"] == "":
+            config["folder"] = r"./decks"
+    
+    if args.moxfield is not None:
+        print("Moxfield set")
+        config["moxfield"] = args.moxfield
+    if args.mtggoldfish is not None:
+        print("MtgGoldfish set")
+        config["mtggoldfish"] = args.mtggoldfish
+    
+    with open("config.json", "w") as f: f.write(json.dumps(config, indent=4)); f.close()
+    
+    
+    
+    if config["moxfield"] != "":  # Is config has a username for moxfield, start downloading
+        print("Starting Moxfield" + config["moxfield"] + "|")
+        MoxField(config["moxfield"], config["folder"]).Download()
+    if config["mtggoldfish"] != "":
+        print("Starting MtgGoldfish" + config["mtggoldfish"] + "|")
+        MtgGoldfish(config["mtggoldfish"], config["folder"]).Download()
+    
+    
+    
+
 if __name__ == "__main__":
-    deckFolder = r"C:\Users\Bear\Desktop\MTG-To-XMage\decks"
-
-    MoxField("thebear132", deckFolder).Download()
-
-    MtgGoldfish("Hypernova", deckFolder).Download()
+    main()
