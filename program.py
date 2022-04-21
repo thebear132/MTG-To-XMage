@@ -153,9 +153,7 @@ class MoxField:
 
     def __getUserDecks(self):
         url = (
-            "https://api.moxfield.com/v2/users/"
-            + self.username
-            + "/decks?pageNumber=1&pageSize=99999"
+            "https://api.moxfield.com/v2/users/" + self.username + "/decks?pageNumber=1&pageSize=99999"
         )
         # Logging
         #print(f"Grabbing <{self.username}>'s public decks from " + url)
@@ -396,7 +394,8 @@ def main():
     parser.add_argument('-vv', action='store_true', help='Super Verbose mode')
     
     #If no arguments were submitted, print help
-    args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
+    #args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
+    args = parser.parse_args()
     
     if args.v:
         print("Verbose mode")
@@ -432,7 +431,7 @@ def main():
     with open("config.json", "w") as f: f.write(json.dumps(config, indent=4)); f.close()
     
     
-    
+    printJson(config)
     if config["moxfield"] != "":  # Is config has a username for moxfield, start downloading
         print("Starting Moxfield" + config["moxfield"] + "|")
         MoxField(config["moxfield"], config["folder"]).Download()
