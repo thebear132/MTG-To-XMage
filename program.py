@@ -3,6 +3,7 @@ from ast import MatchSingleton
 from cgitb import html
 from sre_constants import INFO
 from tokenize import String
+from zipapp import create_archive
 from pip import main
 import requests
 import json
@@ -23,12 +24,16 @@ https://api.moxfield.com/v2/decks/all/	Lister alle public decks på moxfield
 _____TODO_____
 Enable logging with -v https://stackoverflow.com/questions/6579496/using-print-statements-only-to-debug
 
+Change the way arguments are passed when running the program. Figure something smarter?
+
+Archidekt: Update the formatsDict to have all the formats
+
     Moxfield    - Done
     mtggoldfish - Done
+    archideckt  - Done
     tappedout   - 
-    archideckt  - 
     deckstats   - 
-When format is edh, the commander has to be the only card in the sideboard (Moxfield)
+
 """
 
 
@@ -59,10 +64,20 @@ ___  ____        _____       _     _  __ _     _
             __/ |                                    
            |___/                                     
 """)
+    elif websiteName == "archidekt":
+        print(
+            """
+  ___           _     _     _      _    _   
+ / _ \         | |   (_)   | |    | |  | |  
+/ /_\ \_ __ ___| |__  _  __| | ___| | _| |_ 
+|  _  | '__/ __| '_ \| |/ _` |/ _ \ |/ / __|
+| | | | | | (__| | | | | (_| |  __/   <| |_ 
+\_| |_/_|  \___|_| |_|_|\__,_|\___|_|\_\\__|
+""")
 
 
 def printJson(j):
-    print(json.dumps(j, indent=4, sort_keys=True))
+    print(json.dumps(j, indent=4))
 
 
 def logResponse(name, r):  # Logs the request to a .html file for reviewing
@@ -221,14 +236,14 @@ class MoxField:
         print("Only public decks are searchable in Moxfield")
         userDecks = self.__getUserDecks()
         i, total = 1, len(userDecks["data"])
-        for e in userDecks["data"]:
-            print(f"({i}/{total}) " + e["name"] + " " * (50 -
-                  len(e["name"]) - len(str(i))) + e["publicUrl"])
+        for deckName in userDecks["data"]:
+            print(f"({i}/{total}) " + deckName["name"] + " " * (50 -
+                  len(deckName["name"]) - len(str(i))) + deckName["publicUrl"])
             i = i + 1
-            deckJson = self.__getDecklist(e["publicId"])
+            deckJson = self.__getDecklist(deckName["publicId"])
             xDeck = convertDeckToXmage(deckJson)
             writeXmageToPath(self.xmageFolderPath,
-                             e["name"], e["format"], xDeck)
+                             deckName["name"], deckName["format"], xDeck)
 
 
 class MtgGoldfish:
@@ -254,16 +269,15 @@ class MtgGoldfish:
         # Match group link and deckname
         regex = re.findall(
             r'(?<=<td><a href=")(/deck/[0-9]{7})">(.*)</a>', r.text)
-        deckList = {}
+        userDecks = {}
         for e in regex:
             # print(e[0] + " called " + e[1])
-            deckList[e[1]] = e[0]
+            userDecks[e[1]] = e[0]
 
         # Dictionary {'Edh Arcades Aggro deck', '/deck/123qsd'}
-        return deckList
+        return userDecks
 
-    # Does not follow the DeckListTemplate format yet
-    def __getDeckList(self, deckName, deckUrl):
+    def __getDeckList(self, deckUrl):
         url = f"https://www.mtggoldfish.com{deckUrl}#paper"
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0",
@@ -360,7 +374,7 @@ class MtgGoldfish:
                   len(str(i))) + self.mtggoldfishUrl + userDecks[deckName])
             i = i + 1
 
-            deckList = self.__getDeckList(deckName, userDecks[deckName])
+            deckList = self.__getDeckList(userDecks[deckName])
             xDeck = convertDeckToXmage(deckList)
             writeXmageToPath(self.xmageFolderPath, deckName,
                              deckList["format"], xDeck)
@@ -369,21 +383,93 @@ class MtgGoldfish:
         #deckList = self.__getDeckList("Arcades EDH Aggro", "/deck/1430191")
         #xDeck = convertDeckToXmage(deckList)
         #writeXmageToPath(self.xmageFolderPath, deckName, deckList["format"], xDeck)
-        a = 2+2
+        
 
 
+class Archidekt:
+    archidektUrl = "https://archidekt.com"
+    username = ""
+    xmageFolderPath = ""
+
+    def __init__(self, username, xmageFolderPath):
+        self.username = username
+        self.xmageFolderPath = xmageFolderPath + "\\Archidekt"
+
+    def __getUserDecks(self): #https://archidekt.com/search/decks?orderBy=-createdAt&owner=FastHandsTam&ownerexact=true
+        url = (
+            "https://archidekt.com/api/decks/cards/?orderBy=-createdAt&owner=" + self.username + "&ownerexact=true&pageSize=48"
+        )
+        print("Getting user decks at = " + url)
+        
+        r = requests.get(url)
+        j = json.loads(r.text)
+        #f = open("archidektDecks.out", "w"); f.write(json.dumps(j)); f.close()
+        userDecks = {}
+        for e in j["results"]:
+            userDecks[e["name"]] = str(e["id"])  # {"Kalamax Control": "123567"}
+        #printJson(userDecks)
+        return userDecks
+    
+    def __getDecklist(self, deckId):
+        # https://archidekt.com/api/decks/ ID /small/
+        url = f"https://archidekt.com/api/decks/{deckId}/small/"
+        
+        #print(f"Grabbing decklist <{deckId}> {url}")                        #Logging
+        r = requests.get(url)
+        jsonGet = json.loads(r.text)
+        
+        formatsDict = {     #deckFormat comes in id, it has to be translated
+            1: "idk1",
+            3: "commander",
+            15: "pioneer",
+            16: "historic"
+        }
+        
+        deckList = deepcopy(DeckListTemplate)
+        deckList["format"] = formatsDict[jsonGet["deckFormat"]] #Skal konverteres fra tal til string
+        
+        for card in jsonGet["cards"]:
+            cardFormat = deepcopy(CardFormatTemplate)
+            cardFormat["name"] = card["card"]["oracleCard"]["name"]
+            cardFormat["quantity"] = card["quantity"]
+            cardFormat["set"] = card["card"]["edition"]["editioncode"].upper()
+            cardFormat["setNr"] = "-1"
+            
+            if card["categories"][0] == "Commander":
+                deckList["commanders"].append(cardFormat)
+            elif card["categories"][0] == "Companion":
+                deckList["companions"].append(cardFormat)
+            elif card["categories"][0] == "Sideboard":
+                deckList["sideboard"].append(cardFormat)
+            else:
+                deckList["mainboard"].append(cardFormat)
+        return deckList
+        
+    def Download(self):
+        printBanner("archidekt")
+        print("Only public decks are searchable in Archidekt")
+        userDecks = self.__getUserDecks()
+        i, total = 1, len(userDecks)
+        for deckName in userDecks:
+            print(f"({i}/{total}) " + deckName + " " * (50 - len(deckName) - len(str(i))) + self.archidektUrl + "/decks/" + userDecks[deckName])
+            i = i + 1
+            deckList = self.__getDecklist(userDecks[deckName])
+            xDeck = convertDeckToXmage(deckList)
+            writeXmageToPath(self.xmageFolderPath, deckName, str(deckList["format"]), xDeck)
 
 
 # Needs to be changed with -v/-vv/-vvv
 # Critical, Error, Warning, Info, Debug
 logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.ERROR)
 
-def main():
+def createArgs():   #Customise the argument handler
     parser = argparse.ArgumentParser(description='MTG-To-Xmage | Download your online MTG decks to the XMage format')
     #Moxfield username
     parser.add_argument('-moxfield', metavar="username", help='Your username for Moxfield')
     #MtgGoldfish username
     parser.add_argument('-mtggoldfish', metavar="username", help='Your username for MtgGoldfish')
+    #Archidekt username
+    parser.add_argument('-archidekt', metavar="username", help='Your username for Archidekt')
     
     #Path to folder
     parser.add_argument('-o', metavar="path", help='Path to the folder to download your decks to')
@@ -396,7 +482,10 @@ def main():
     #If no arguments were submitted, print help
     #args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
     args = parser.parse_args()
-    
+    return args
+
+def main():
+    args = createArgs()    
     if args.v:
         print("Verbose mode")
     elif args.vv:
@@ -410,7 +499,7 @@ def main():
     """
     
     
-    config = {"folder": "", "moxfield": "", "mtggoldfish": "" }
+    config = {"folder": "", "moxfield": "", "mtggoldfish": "", "archidekt": ""}
     if os.path.exists("./config.json"): # If there exists a 
         tmp = open("./config.json", "r").read()
         config = json.loads(tmp)
@@ -427,17 +516,23 @@ def main():
     if args.mtggoldfish is not None:
         print("MtgGoldfish set")
         config["mtggoldfish"] = args.mtggoldfish
-    
+    if args.mtggoldfish is not None:
+        print("Archidekt set")
+        config["archidekt"] = args.archidekt
+        
     with open("config.json", "w") as f: f.write(json.dumps(config, indent=4)); f.close()
     
     
-    printJson(config)
+    #printJson(config)
     if config["moxfield"] != "":  # Is config has a username for moxfield, start downloading
-        print("Starting Moxfield" + config["moxfield"] + "|")
+        print("Starting Moxfield | " + config["moxfield"])
         MoxField(config["moxfield"], config["folder"]).Download()
     if config["mtggoldfish"] != "":
-        print("Starting MtgGoldfish" + config["mtggoldfish"] + "|")
+        print("Starting MtgGoldfish | " + config["mtggoldfish"])
         MtgGoldfish(config["mtggoldfish"], config["folder"]).Download()
+    if config["archidekt"] != "":
+        print("Starting Archidekt | " + config["archidekt"])
+        Archidekt(config["archidekt"], config["folder"]).Download()
     
     
     
