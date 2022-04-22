@@ -12,6 +12,7 @@ import sys
 import os
 import re
 import html
+from bs4 import BeautifulSoup
 from copy import deepcopy
 
 """ SHIFT + ALT + F -> FIX INDENTATION ERRORS
@@ -22,16 +23,17 @@ https://api.moxfield.com/v2/decks/all/	Lister alle public decks på moxfield
 
 
 _____TODO_____
-Enable logging with -v https://stackoverflow.com/questions/6579496/using-print-statements-only-to-debug
+- Enable logging with -v https://stackoverflow.com/questions/6579496/using-print-statements-only-to-debug
 
-Change the way arguments are passed when running the program. Figure something smarter?
+- Change the way arguments are passed when running the program. Figure something smarter?
 
-Archidekt: Update the formatsDict to have all the formats
+- Archidekt: Update the formatsDict to have all the formats
 
+Platforms
     Moxfield    - Done
     mtggoldfish - Done
     archideckt  - Done
-    tappedout   - 
+    tappedout   - Started
     deckstats   - 
 
 """
@@ -98,9 +100,9 @@ DeckListTemplate = {  # Remember to deepcopy() when copying this template
 }
 CardFormatTemplate = {
     "quantity": 0,
-    "name": "",  # Lightning Bolt
-    "set": "",  # M12
-    "setNr": "1",  # 65
+    "name": "",         # Lightning Bolt
+    "set": "",          # M12
+    "setNr": "1",       # 65
 }
 
 
@@ -168,7 +170,8 @@ class MoxField:
 
     def __getUserDecks(self):
         url = (
-            "https://api.moxfield.com/v2/users/" + self.username + "/decks?pageNumber=1&pageSize=99999"
+            "https://api.moxfield.com/v2/users/" +
+            self.username + "/decks?pageNumber=1&pageSize=99999"
         )
         # Logging
         #print(f"Grabbing <{self.username}>'s public decks from " + url)
@@ -381,9 +384,6 @@ class MtgGoldfish:
 
         #deckList = self.__getDeckList("Malcolm/Breeches", "/deck/4754316")
         #deckList = self.__getDeckList("Arcades EDH Aggro", "/deck/1430191")
-        #xDeck = convertDeckToXmage(deckList)
-        #writeXmageToPath(self.xmageFolderPath, deckName, deckList["format"], xDeck)
-        
 
 
 class Archidekt:
@@ -395,46 +395,50 @@ class Archidekt:
         self.username = username
         self.xmageFolderPath = xmageFolderPath + "\\Archidekt"
 
-    def __getUserDecks(self): #https://archidekt.com/search/decks?orderBy=-createdAt&owner=FastHandsTam&ownerexact=true
+    def __getUserDecks(self):
+        # https://archidekt.com/search/decks?orderBy=-createdAt&owner=FastHandsTam&ownerexact=true
         url = (
-            "https://archidekt.com/api/decks/cards/?orderBy=-createdAt&owner=" + self.username + "&ownerexact=true&pageSize=48"
+            "https://archidekt.com/api/decks/cards/?orderBy=-createdAt&owner=" +
+            self.username + "&ownerexact=true&pageSize=48"
         )
         print("Getting user decks at = " + url)
-        
+
         r = requests.get(url)
         j = json.loads(r.text)
         #f = open("archidektDecks.out", "w"); f.write(json.dumps(j)); f.close()
         userDecks = {}
         for e in j["results"]:
-            userDecks[e["name"]] = str(e["id"])  # {"Kalamax Control": "123567"}
-        #printJson(userDecks)
+            # {"Kalamax Control": "123567"}
+            userDecks[e["name"]] = str(e["id"])
+        # printJson(userDecks)
         return userDecks
-    
+
     def __getDecklist(self, deckId):
         # https://archidekt.com/api/decks/ ID /small/
         url = f"https://archidekt.com/api/decks/{deckId}/small/"
-        
-        #print(f"Grabbing decklist <{deckId}> {url}")                        #Logging
+
+        # print(f"Grabbing decklist <{deckId}> {url}")                        #Logging
         r = requests.get(url)
         jsonGet = json.loads(r.text)
-        
-        formatsDict = {     #deckFormat comes in id, it has to be translated
+
+        formatsDict = {  # deckFormat comes in id, it has to be translated
             1: "idk1",
             3: "commander",
             15: "pioneer",
             16: "historic"
         }
-        
+
         deckList = deepcopy(DeckListTemplate)
-        deckList["format"] = formatsDict[jsonGet["deckFormat"]] #Skal konverteres fra tal til string
-        
+        # Skal konverteres fra tal til string
+        deckList["format"] = formatsDict[jsonGet["deckFormat"]]
+
         for card in jsonGet["cards"]:
             cardFormat = deepcopy(CardFormatTemplate)
             cardFormat["name"] = card["card"]["oracleCard"]["name"]
             cardFormat["quantity"] = card["quantity"]
             cardFormat["set"] = card["card"]["edition"]["editioncode"].upper()
             cardFormat["setNr"] = "-1"
-            
+
             if card["categories"][0] == "Commander":
                 deckList["commanders"].append(cardFormat)
             elif card["categories"][0] == "Companion":
@@ -444,48 +448,135 @@ class Archidekt:
             else:
                 deckList["mainboard"].append(cardFormat)
         return deckList
-        
+
     def Download(self):
         printBanner("archidekt")
         print("Only public decks are searchable in Archidekt")
         userDecks = self.__getUserDecks()
         i, total = 1, len(userDecks)
         for deckName in userDecks:
-            print(f"({i}/{total}) " + deckName + " " * (50 - len(deckName) - len(str(i))) + self.archidektUrl + "/decks/" + userDecks[deckName])
+            print(f"({i}/{total}) " + deckName + " " * (50 - len(deckName) -
+                  len(str(i))) + self.archidektUrl + "/decks/" + userDecks[deckName])
             i = i + 1
             deckList = self.__getDecklist(userDecks[deckName])
             xDeck = convertDeckToXmage(deckList)
-            writeXmageToPath(self.xmageFolderPath, deckName, str(deckList["format"]), xDeck)
+            writeXmageToPath(self.xmageFolderPath, deckName,
+                             str(deckList["format"]), xDeck)
+
+
+class Tappedout:
+    tappedoutUrl = "https://tappedout.net/"
+    username = ""
+    xmageFolderPath = ""
+
+    def __init__(self, username, xmageFolderPath):
+        self.username = username
+        self.xmageFolderPath = xmageFolderPath + "\\Tappedout"
+
+    def __getUserDecks(self):
+        # https://tappedout.net/users/Hypernova/mtg-decks/   Personal, also works? (Using)
+        # https://tappedout.net/users/Hypernova/             Public
+        url = (
+            f"https://tappedout.net/users/{self.username}/mtg-decks/"
+        )
+        print("Getting user decks at = " + url)
+
+        r = requests.get(url)
+
+        # Find name and link in 2 groups
+        regex = re.findall(
+            r'<a title="mtg decks - (.*)" href="/mtg-decks/(.*)/">', r.text)
+        userDecks = {}
+        for deck in regex:
+            userDecks[deck[0]] = deck[1]
+        # "Test": "15-09-18-kaI-test"
+        printJson(userDecks)
+        return userDecks
+
+    def __getDecklist(self, deckId):
+        url = f"https://tappedout.net/mtg-decks/{deckId}/"
+
+        print(f"Grabbing decklist <{deckId}> {url}")  # Logging
+        r = requests.get(url)
+        f = open("LordXander.html", "w")
+        f.write(r.text)
+        f.close()
+
+        #https://www.adamsmith.haus/python/examples/1740/beautifulsoup-find-the-first-parent-with-a-given-tag-name
+        #https://www.dataquest.io/blog/web-scraping-python-using-beautiful-soup/
+        soup = BeautifulSoup(r.content, 'html.parser')
+        print("\n\n")
+        cmdrs = soup.find_all(class_='commander-img img-responsive card-img-hover')
+        if len(cmdrs) > 0:
+            mainCommander = cmdrs[0].find_parent('a')['data-name']
+        if len(cmdrs) == 2:
+            altCommander = cmdrs[1].find_parent('a')['data-name']
+        
+        print(mainCommander, "|", altCommander)
+        
+        
+        
+        # Find all cards with quantity, name, set and setNr
+        regex = re.findall(
+            '([0-9]{1,2}) (.*) \(([0-9a-zA-Z]{1,6})\) ([0-9]{1,4})', r.text)
+
+        deckList = deepcopy(DeckListTemplate)
+
+        return deckList
+
+    def Download(self):
+        # printBanner("tappedout")
+        print("Only public decks are searchable in Tappedout")
+        userDecks = self.__getUserDecks()
+        i, total = 1, len(userDecks)
+        for deckName in userDecks:
+            print(f"({i}/{total}) " + deckName + " " * (50 - len(deckName) -
+                  len(str(i))) + self.tappedoutUrl + "/mtg-decks/" + userDecks[deckName])
+            i = i + 1
+
+        # self.__getDecklist("commander-but-you-never-play-your-commander-copy-4")
+        # self.__getDecklist("flickertwist")
+        self.__getDecklist("breeches-malcolm-enter-a-bar")
 
 
 # Needs to be changed with -v/-vv/-vvv
 # Critical, Error, Warning, Info, Debug
 logging.basicConfig(format='[%(levelname)s] %(message)s', level=logging.ERROR)
 
-def createArgs():   #Customise the argument handler
-    parser = argparse.ArgumentParser(description='MTG-To-Xmage | Download your online MTG decks to the XMage format')
-    #Moxfield username
-    parser.add_argument('-moxfield', metavar="username", help='Your username for Moxfield')
-    #MtgGoldfish username
-    parser.add_argument('-mtggoldfish', metavar="username", help='Your username for MtgGoldfish')
-    #Archidekt username
-    parser.add_argument('-archidekt', metavar="username", help='Your username for Archidekt')
-    
-    #Path to folder
-    parser.add_argument('-o', metavar="path", help='Path to the folder to download your decks to')
-    
-    #Verbose mode
+
+def createArgs():  # Customise the argument handler
+    parser = argparse.ArgumentParser(
+        description='MTG-To-Xmage | Download your online MTG decks to the XMage format')
+    # Moxfield username
+    parser.add_argument('-moxfield', metavar="username",
+                        help='Your username for Moxfield')
+    # MtgGoldfish username
+    parser.add_argument('-mtggoldfish', metavar="username",
+                        help='Your username for MtgGoldfish')
+    # Archidekt username
+    parser.add_argument('-archidekt', metavar="username",
+                        help='Your username for Archidekt')
+    # Tappedout username
+    parser.add_argument('-tappedout', metavar="username",
+                        help='Your username for Tappedout')
+
+    # Path to folder
+    parser.add_argument('-o', metavar="path",
+                        help='Path to the folder to download your decks to')
+
+    # Verbose mode
     parser.add_argument('-v', action='store_true', help='Verbose mode')
-    #Super Verbose mode
+    # Super Verbose mode
     parser.add_argument('-vv', action='store_true', help='Super Verbose mode')
-    
-    #If no arguments were submitted, print help
+
+    # If no arguments were submitted, print help
     #args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
     args = parser.parse_args()
     return args
 
+
 def main():
-    args = createArgs()    
+    args = createArgs()
     if args.v:
         print("Verbose mode")
     elif args.vv:
@@ -497,45 +588,50 @@ def main():
     logging.error("Error")
     logging.critical("Critical")
     """
-    
-    
-    config = {"folder": "", "moxfield": "", "mtggoldfish": "", "archidekt": ""}
-    if os.path.exists("./config.json"): # If there exists a 
+
+    config = {"folder": "", "moxfield": "",
+              "mtggoldfish": "", "archidekt": "", "tappedout": ""}
+    if os.path.exists("./config.json"):  # If there exists a
         tmp = open("./config.json", "r").read()
         config = json.loads(tmp)
-    
+
     if args.o is not None:              # If -o [path] is set, update the value
         config["folder"] = args.o
     else:
         if config["folder"] == "":
             config["folder"] = r"./decks"
-    
+
     if args.moxfield is not None:
         print("Moxfield set")
         config["moxfield"] = args.moxfield
     if args.mtggoldfish is not None:
         print("MtgGoldfish set")
         config["mtggoldfish"] = args.mtggoldfish
-    if args.mtggoldfish is not None:
+    if args.archidekt is not None:
         print("Archidekt set")
         config["archidekt"] = args.archidekt
-        
-    with open("config.json", "w") as f: f.write(json.dumps(config, indent=4)); f.close()
-    
-    
-    #printJson(config)
+    if args.tappedout is not None:
+        print("Tappedout set")
+        config["tappedout"] = args.tappedout
+
+    with open("config.json", "w") as f:
+        f.write(json.dumps(config, indent=4))
+        f.close()
+
+    # printJson(config)
     if config["moxfield"] != "":  # Is config has a username for moxfield, start downloading
         print("Starting Moxfield | " + config["moxfield"])
-        MoxField(config["moxfield"], config["folder"]).Download()
+        #MoxField(config["moxfield"], config["folder"]).Download()
     if config["mtggoldfish"] != "":
         print("Starting MtgGoldfish | " + config["mtggoldfish"])
-        MtgGoldfish(config["mtggoldfish"], config["folder"]).Download()
+        #MtgGoldfish(config["mtggoldfish"], config["folder"]).Download()
     if config["archidekt"] != "":
         print("Starting Archidekt | " + config["archidekt"])
-        Archidekt(config["archidekt"], config["folder"]).Download()
-    
-    
-    
+        #Archidekt(config["archidekt"], config["folder"]).Download()
+    if config["tappedout"] != "":
+        print("Starting Tappedout | " + config["tappedout"])
+        Tappedout(config["tappedout"], config["folder"]).Download()
+
 
 if __name__ == "__main__":
     main()
