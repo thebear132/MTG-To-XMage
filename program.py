@@ -12,7 +12,7 @@ import sys
 import os
 import re
 import html
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup   #https://www.crummy.com/software/BeautifulSoup/bs4/doc/#navigating-the-tree
 from copy import deepcopy
 
 """ SHIFT + ALT + F -> FIX INDENTATION ERRORS
@@ -33,7 +33,7 @@ Platforms
     Moxfield    - Done
     mtggoldfish - Done
     archideckt  - Done
-    tappedout   - Done (Needs support for companions)
+    tappedout   - Done #Bug with some commander decks, check (Commander But You Never Play Your Commander copy)
     deckstats   - 
 
 """
@@ -526,8 +526,6 @@ class Tappedout:
                 mainCompanion = parent.find(class_="card-type-legendary").a['data-name']
         
         
-        
-        
         #We need to split the mainboard and the sideboard up, they are seperated by 2 newlines
         cards = soup.find(id='mtga-textarea').text
         if "\n\n" in cards:     #If there is a sideboard
@@ -564,7 +562,7 @@ class Tappedout:
             else:
                 deckList["sideboard"].append(cardFormat)
         
-        printJson(deckList)
+        #printJson(deckList)
         return deckList
 
     def Download(self):
@@ -577,14 +575,13 @@ class Tappedout:
                   len(str(i))) + self.tappedoutUrl + "/mtg-decks/" + userDecks[deckName])
             i = i + 1
             
-            #deckList = self.__getDecklist(userDecks[deckName])
-            #xDeck = convertDeckToXmage(deckList)
-            #print(self.xmageFolderPath, deckName, deckList["format"])
-            #writeXmageToPath(self.xmageFolderPath, deckName, deckList["format"], xDeck)
+            deckList = self.__getDecklist(userDecks[deckName])
+            xDeck = convertDeckToXmage(deckList)
+            writeXmageToPath(self.xmageFolderPath, deckName, deckList["format"], xDeck)
         
         #self.__getDecklist("commander-but-you-never-play-your-commander-copy-4")
         #self.__getDecklist("yorion-enchantments-1")
-        self.__getDecklist("breeches-malcolm-enter-a-bar")
+        #self.__getDecklist("breeches-malcolm-enter-a-bar")
 
 # Needs to be changed with -v/-vv/-vvv
 # Critical, Error, Warning, Info, Debug
