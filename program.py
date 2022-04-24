@@ -506,15 +506,26 @@ class Tappedout:
             deckList["format"] = "commander"
         deckList["format"] = deckList["format"].replace('*', '')
         
-        
-        #Find commander with beautifulsoup
+        #Find commanders and companion with beautifulsoup
         soup = BeautifulSoup(r.content, 'html.parser')
-        cmdrs = soup.find_all(class_='commander-img img-responsive card-img-hover')
+        
         mainCommander, altCommander = "", ""
-        if len(cmdrs) > 0:
-            mainCommander = cmdrs[0].find_parent('a')['data-name']
-        if len(cmdrs) == 2:
-            altCommander = cmdrs[1].find_parent('a')['data-name']
+        mainCompanion = ""
+        h3Tags = soup.find_all('h3')
+        for h3 in h3Tags:
+            if "commander" in h3.text.lower():
+                #print("Commanders found")
+                legendary = h3.find_parent().find_all(class_="card-type-legendary")
+                mainCommander = legendary[0].a['data-name']
+                if len(legendary) == 2:
+                    altCommander = legendary[1].a['data-name']
+        
+            if "companion" in h3.text.lower():
+                #print("Found companion")
+                parent = h3.find_parent()
+                mainCompanion = parent.find(class_="card-type-legendary").a['data-name']
+        
+        
         
         
         #We need to split the mainboard and the sideboard up, they are seperated by 2 newlines
@@ -535,9 +546,8 @@ class Tappedout:
             cardFormat["set"] = card[2]
             cardFormat["setNr"] = card[3]
             
-            if cardFormat["name"] == mainCommander or cardFormat["name"] == altCommander:
+            if cardFormat["name"] == mainCommander or cardFormat["name"] == altCommander:   #If any of the cards are a companion
                 deckList["commanders"].append(cardFormat)
-                #print(cardFormat["name"], "Commander found, adding to mainboard")
             else:
                 deckList["mainboard"].append(cardFormat)
             
@@ -547,9 +557,14 @@ class Tappedout:
             cardFormat["name"] = card[1]
             cardFormat["set"] = card[2]
             cardFormat["setNr"] = card[3]
-            deckList["sideboard"].append(cardFormat)
+
+            
+            if cardFormat["name"] == mainCompanion:
+                deckList["companions"].append(cardFormat)
+            else:
+                deckList["sideboard"].append(cardFormat)
         
-        #printJson(deckList)
+        printJson(deckList)
         return deckList
 
     def Download(self):
@@ -562,12 +577,14 @@ class Tappedout:
                   len(str(i))) + self.tappedoutUrl + "/mtg-decks/" + userDecks[deckName])
             i = i + 1
             
-            deckList = self.__getDecklist(userDecks[deckName])
-            xDeck = convertDeckToXmage(deckList)
-            print(self.xmageFolderPath, deckName, deckList["format"])
-            writeXmageToPath(self.xmageFolderPath, deckName, deckList["format"], xDeck)
+            #deckList = self.__getDecklist(userDecks[deckName])
+            #xDeck = convertDeckToXmage(deckList)
+            #print(self.xmageFolderPath, deckName, deckList["format"])
+            #writeXmageToPath(self.xmageFolderPath, deckName, deckList["format"], xDeck)
+        
         #self.__getDecklist("commander-but-you-never-play-your-commander-copy-4")
-        #self.__getDecklist("flickertwist")
+        #self.__getDecklist("yorion-enchantments-1")
+        self.__getDecklist("breeches-malcolm-enter-a-bar")
 
 # Needs to be changed with -v/-vv/-vvv
 # Critical, Error, Warning, Info, Debug
