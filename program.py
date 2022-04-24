@@ -33,7 +33,7 @@ Platforms
     Moxfield    - Done
     mtggoldfish - Done
     archideckt  - Done
-    tappedout   - Started
+    tappedout   - Done (Needs support for companions)
     deckstats   - 
 
 """
@@ -148,7 +148,7 @@ def convertDeckToXmage(deckList):
 
 
 def writeXmageToPath(xmageFolderPath, deckName, format, deckContent):
-    # print(self.xmageFolderPath + "\\" + deckName + ".dck")                    #Logging
+    print(xmageFolderPath + "\\" + deckName + ".dck")                    #Logging
     xmageFolderPath += "\\" + format
     if not (os.path.exists(xmageFolderPath)):
         os.makedirs(xmageFolderPath)
@@ -295,10 +295,6 @@ class MtgGoldfish:
         # Filter out the last part of the response
         sortedR = r.text[: r.text.index("<div class='hidden-form'")]
 
-        """f = open("sortedR.log", "w")
-        f.write(sortedR)
-        f.close()"""
-
         # Regex for format
         format = re.findall(r"(?:Format: )(.*)", sortedR)[0].lower()
         # Regex for Commanders. #altCommander is for partner
@@ -401,7 +397,7 @@ class Archidekt:
             "https://archidekt.com/api/decks/cards/?orderBy=-createdAt&owner=" +
             self.username + "&ownerexact=true&pageSize=48"
         )
-        print("Getting user decks at = " + url)
+        #print("Getting user decks at = " + url) #Logging
 
         r = requests.get(url)
         j = json.loads(r.text)
@@ -479,7 +475,7 @@ class Tappedout:
         url = (
             f"https://tappedout.net/users/{self.username}/mtg-decks/"
         )
-        print("Getting user decks at = " + url)
+        #print("Getting user decks at = " + url)
 
         r = requests.get(url)
 
@@ -490,38 +486,70 @@ class Tappedout:
         for deck in regex:
             userDecks[deck[0]] = deck[1]
         # "Test": "15-09-18-kaI-test"
-        printJson(userDecks)
+        
         return userDecks
 
     def __getDecklist(self, deckId):
         url = f"https://tappedout.net/mtg-decks/{deckId}/"
 
-        print(f"Grabbing decklist <{deckId}> {url}")  # Logging
+        #print(f"Grabbing decklist <{deckId}> {url}")  # Logging
         r = requests.get(url)
         f = open("LordXander.html", "w")
         f.write(r.text)
         f.close()
-
-        #https://www.adamsmith.haus/python/examples/1740/beautifulsoup-find-the-first-parent-with-a-given-tag-name
-        #https://www.dataquest.io/blog/web-scraping-python-using-beautiful-soup/
+        
+        deckList = deepcopy(DeckListTemplate)
+        #Format should maybe be retrieved from this line?   Legality This deck is Commander / EDH legal.
+        #Depends on if the "Commander / EDH" tag is on every deck, or its missing in some of the decks
+        deckList["format"] = re.findall(r'(?:<a class="btn btn-success btn-xs").*">(.*)\n', r.text)[0].lower().strip()
+        if "commander" in deckList["format"].lower() or "edh" in deckList["format"].lower():
+            deckList["format"] = "commander"
+        deckList["format"] = deckList["format"].replace('*', '')
+        
+        
+        #Find commander with beautifulsoup
         soup = BeautifulSoup(r.content, 'html.parser')
-        print("\n\n")
         cmdrs = soup.find_all(class_='commander-img img-responsive card-img-hover')
+        mainCommander, altCommander = "", ""
         if len(cmdrs) > 0:
             mainCommander = cmdrs[0].find_parent('a')['data-name']
         if len(cmdrs) == 2:
             altCommander = cmdrs[1].find_parent('a')['data-name']
         
-        print(mainCommander, "|", altCommander)
         
-        
+        #We need to split the mainboard and the sideboard up, they are seperated by 2 newlines
+        cards = soup.find(id='mtga-textarea').text
+        if "\n\n" in cards:     #If there is a sideboard
+            mainboardHTML = cards[:cards.index('\n\n')].strip()
+            sideboardHTML = cards[cards.index('\n\n'):].strip()
+        else:                   #if there is NO sideboard
+            mainboardHTML = cards
         
         # Find all cards with quantity, name, set and setNr
-        regex = re.findall(
-            '([0-9]{1,2}) (.*) \(([0-9a-zA-Z]{1,6})\) ([0-9]{1,4})', r.text)
-
-        deckList = deepcopy(DeckListTemplate)
-
+        mainboard = re.findall('([0-9]{1,2}) (.*) \(([0-9a-zA-Z]{1,6})\) ([0-9]{1,4})', mainboardHTML)
+        sideboard = re.findall('([0-9]{1,2}) (.*) \(([0-9a-zA-Z]{1,6})\) ([0-9]{1,4})', sideboardHTML)
+        for card in mainboard:
+            cardFormat = deepcopy(CardFormatTemplate)
+            cardFormat["quantity"] = card[0]
+            cardFormat["name"] = card[1]
+            cardFormat["set"] = card[2]
+            cardFormat["setNr"] = card[3]
+            
+            if cardFormat["name"] == mainCommander or cardFormat["name"] == altCommander:
+                deckList["commanders"].append(cardFormat)
+                #print(cardFormat["name"], "Commander found, adding to mainboard")
+            else:
+                deckList["mainboard"].append(cardFormat)
+            
+        for card in sideboard:
+            cardFormat = deepcopy(CardFormatTemplate)
+            cardFormat["quantity"] = card[0]
+            cardFormat["name"] = card[1]
+            cardFormat["set"] = card[2]
+            cardFormat["setNr"] = card[3]
+            deckList["sideboard"].append(cardFormat)
+        
+        #printJson(deckList)
         return deckList
 
     def Download(self):
@@ -533,11 +561,13 @@ class Tappedout:
             print(f"({i}/{total}) " + deckName + " " * (50 - len(deckName) -
                   len(str(i))) + self.tappedoutUrl + "/mtg-decks/" + userDecks[deckName])
             i = i + 1
-
-        # self.__getDecklist("commander-but-you-never-play-your-commander-copy-4")
-        # self.__getDecklist("flickertwist")
-        self.__getDecklist("breeches-malcolm-enter-a-bar")
-
+            
+            deckList = self.__getDecklist(userDecks[deckName])
+            xDeck = convertDeckToXmage(deckList)
+            print(self.xmageFolderPath, deckName, deckList["format"])
+            writeXmageToPath(self.xmageFolderPath, deckName, deckList["format"], xDeck)
+        #self.__getDecklist("commander-but-you-never-play-your-commander-copy-4")
+        #self.__getDecklist("flickertwist")
 
 # Needs to be changed with -v/-vv/-vvv
 # Critical, Error, Warning, Info, Debug
