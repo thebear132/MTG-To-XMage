@@ -1,14 +1,14 @@
 import argparse
-from ast import MatchSingleton
-from cgitb import html
-from sre_constants import INFO
+#from ast import MatchSingleton
+#from cgitb import html
+#from sre_constants import INFO
 from tokenize import String
-from zipapp import create_archive
-from pip import main
+#from zipapp import create_archive
+#from pip import main
 import requests
 import json
 import logging
-import sys
+#import sys
 import os
 import re
 import html
@@ -26,16 +26,19 @@ _____TODO_____
 - Enable logging with -v https://stackoverflow.com/questions/6579496/using-print-statements-only-to-debug
 
 - Change the way arguments are passed when running the program. Figure something smarter?
+    - If one if the arguments are set, dont run the others
 
 - Archidekt: Update the formatsDict to have all the formats
+
+- convertDeckToXMage: Add the NAME tag to the file. e.g. NAME:Arcades Aggro
 
 Platforms
     Moxfield    - Done
     mtggoldfish - Done
     archideckt  - Done
     tappedout   - Done #Bug with some commander decks, check (Commander But You Never Play Your Commander copy)
-    deckstats   - 
-
+    deckstats   - ???
+    
 """
 
 
@@ -76,6 +79,18 @@ ___  ____        _____       _     _  __ _     _
 | | | | | | (__| | | | | (_| |  __/   <| |_ 
 \_| |_/_|  \___|_| |_|_|\__,_|\___|_|\_\\__|
 """)
+    elif websiteName == "tappedout":
+        print(
+            """
+ _____                          _ _____       _   
+|_   _|                        | |  _  |     | |  
+  | | __ _ _ __  _ __   ___  __| | | | |_   _| |_ 
+  | |/ _` | '_ \| '_ \ / _ \/ _` | | | | | | | __|
+  | | (_| | |_) | |_) |  __/ (_| \ \_/ / |_| | |_ 
+  \_/\__,_| .__/| .__/ \___|\__,_|\___/ \__,_|\__|
+          | |   | |                               
+          |_|   |_|                               
+""")
 
 
 def printJson(j):
@@ -105,7 +120,6 @@ CardFormatTemplate = {
     "setNr": "1",       # 65
 }
 
-
 def convertDeckToXmage(deckList):
     # If the format is EDH, make the Commander the only sideboard card
     if deckList["format"] == "commander":
@@ -113,7 +127,7 @@ def convertDeckToXmage(deckList):
         for cmdr in deckList["commanders"]:
             deckList["sideboard"].append(cmdr)
 
-    xDeck = ""
+    xDeck = ""  #Add NAME tag NAME:Arcades Aggro
     problematicCards = ""
     for card in deckList["mainboard"]:
         quantity = card["quantity"]
@@ -127,6 +141,7 @@ def convertDeckToXmage(deckList):
 
         line = f"{quantity} [{set}:{setNr}] {name}\n"
         xDeck += line
+    
     for card in deckList["sideboard"]:
         quantity = card["quantity"]
         name = card["name"]
@@ -141,14 +156,12 @@ def convertDeckToXmage(deckList):
         xDeck += line
 
     if problematicCards != "":
-        print("     [!]", problematicCards.count(
-            '|'), "card(s) might not have been imported. Run in verbose mode (-v) for more info")
+        print("     [!]", problematicCards.count('|'), "card(s) might not have been imported. Run in verbose mode (-v) for more info")
         # logging the problematic cards here
     return xDeck
 
-
 def writeXmageToPath(xmageFolderPath, deckName, format, deckContent):
-    print(xmageFolderPath + "\\" + deckName + ".dck")                    #Logging
+    #print(xmageFolderPath + "\\" + deckName + ".dck")                    #Logging
     xmageFolderPath += "\\" + format
     if not (os.path.exists(xmageFolderPath)):
         os.makedirs(xmageFolderPath)
@@ -566,7 +579,7 @@ class Tappedout:
         return deckList
 
     def Download(self):
-        # printBanner("tappedout")
+        printBanner("tappedout")
         print("Only public decks are searchable in Tappedout")
         userDecks = self.__getUserDecks()
         i, total = 1, len(userDecks)
@@ -648,7 +661,7 @@ def main():
     if args.moxfield is not None:
         print("Moxfield set")
         config["moxfield"] = args.moxfield
-    if args.mtggoldfish is not None:
+    if args.mtggoldfish is not None: 
         print("MtgGoldfish set")
         config["mtggoldfish"] = args.mtggoldfish
     if args.archidekt is not None:
@@ -665,17 +678,16 @@ def main():
     # printJson(config)
     if config["moxfield"] != "":  # Is config has a username for moxfield, start downloading
         print("Starting Moxfield | " + config["moxfield"])
-        #MoxField(config["moxfield"], config["folder"]).Download()
+        MoxField(config["moxfield"], config["folder"]).Download()
     if config["mtggoldfish"] != "":
         print("Starting MtgGoldfish | " + config["mtggoldfish"])
-        #MtgGoldfish(config["mtggoldfish"], config["folder"]).Download()
+        MtgGoldfish(config["mtggoldfish"], config["folder"]).Download()
     if config["archidekt"] != "":
         print("Starting Archidekt | " + config["archidekt"])
-        #Archidekt(config["archidekt"], config["folder"]).Download()
+        Archidekt(config["archidekt"], config["folder"]).Download()
     if config["tappedout"] != "":
         print("Starting Tappedout | " + config["tappedout"])
         Tappedout(config["tappedout"], config["folder"]).Download()
-
 
 if __name__ == "__main__":
     main()
