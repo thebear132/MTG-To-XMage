@@ -215,15 +215,16 @@ class MoxField:
                 deckList["commanders"].append(cardFormat)
 
         if jsonGet["companionsCount"] != 0:
+            print(url)
             for comp in jsonGet["companions"]:
                 cardFormat = deepcopy(CardFormatTemplate)
-                specificCard = jsonGet["comp"][comp]
-
+                specificCard = jsonGet["companions"][comp]
+                
                 cardFormat["name"] = comp
                 cardFormat["quantity"] = specificCard["quantity"]
                 cardFormat["set"] = specificCard["card"]["set"].upper()
                 cardFormat["setNr"] = specificCard["card"]["cn"]
-                deckList["comp"].append(cardFormat)
+                deckList["companions"].append(cardFormat)
 
         for card in jsonGet["mainboard"]:
             cardFormat = deepcopy(CardFormatTemplate)
@@ -684,7 +685,7 @@ def main():
         MtgGoldfish(config["mtggoldfish"], config["folder"]).Download()
     if config["archidekt"] != "":
         print("Starting Archidekt | " + config["archidekt"])
-        Archidekt(config["archidekt"], config["folder"]).Download()
+        Archidekt(config["archidekt"], config["folder"]).Download()         #FastHandsTam
     if config["tappedout"] != "":
         print("Starting Tappedout | " + config["tappedout"])
         Tappedout(config["tappedout"], config["folder"]).Download()
