@@ -1,4 +1,5 @@
 /decks
 *.html
 *.out
+*.dck
 config.json

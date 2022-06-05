@@ -508,9 +508,9 @@ class Tappedout:
 
         #print(f"Grabbing decklist <{deckId}> {url}")  # Logging
         r = requests.get(url)
-        f = open("LordXander.html", "w")
+        """f = open("LordXander.html", "w")
         f.write(r.text)
-        f.close()
+        f.close()"""
         
         deckList = deepcopy(DeckListTemplate)
         #Format should maybe be retrieved from this line?   Legality This deck is Commander / EDH legal.
@@ -692,3 +692,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+#700
