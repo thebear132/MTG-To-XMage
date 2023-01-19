@@ -179,7 +179,7 @@ class MoxField:
 
     def __init__(self, username, xmageFolderPath):
         self.username = username
-        self.xmageFolderPath = xmageFolderPath + "\\Moxfield"
+        self.xmageFolderPath = xmageFolderPath #+ "\\Moxfield"
 
     def __getUserDecks(self):
         url = (
