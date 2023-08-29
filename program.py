@@ -162,13 +162,13 @@ def convertDeckToXmage(deckList):
 
 def writeXmageToPath(xmageFolderPath, deckName, format, deckContent):
     #print(xmageFolderPath + "\\" + deckName + ".dck")                    #Logging
-    xmageFolderPath += "\\" + format
+    xmageFolderPath = os.path.join(xmageFolderPath, format)
     if not (os.path.exists(xmageFolderPath)):
         os.makedirs(xmageFolderPath)
 
     # Remove bad characters
     deckName = "".join(i for i in deckName if i not in "\/:*?<>|")
-    f = open(xmageFolderPath + "\\" + deckName + ".dck", "w")
+    f = open(os.path.join(xmageFolderPath, deckName) + ".dck", "w")
     f.write(deckContent)
     f.close()
 
