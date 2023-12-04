@@ -187,8 +187,9 @@ class MoxField:
             self.username + "/decks?pageNumber=1&pageSize=99999"
         )
         # Logging
-        #print(f"Grabbing <{self.username}>'s public decks from " + url)
-        r = requests.get(url)
+        print(f"Grabbing <{self.username}>'s public decks from " + url)
+        proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
+        r = requests.get(url, proxies=proxies)
         j = json.loads(r.text)
         # printJson(j)
         return j
@@ -249,7 +250,7 @@ class MoxField:
         return deckList
 
     def Download(self):
-        printBanner("moxfield")
+        # printBanner("moxfield")
         print("Only public decks are searchable in Moxfield")
         userDecks = self.__getUserDecks()
         i, total = 1, len(userDecks["data"])
