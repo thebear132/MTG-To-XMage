@@ -49,7 +49,7 @@ def debug(args):  # Enable debugging printing
 def printBanner(websiteName):  # Implemented => (moxfield, mtggoldfish). Doom font
     if websiteName == "moxfield":
         print(
-            """
+            r"""
 ___  ___           __ _      _     _ 
 |  \/  |          / _(_)    | |   | |
 | .  . | _____  _| |_ _  ___| | __| |
@@ -59,7 +59,7 @@ ___  ___           __ _      _     _
 """)
     elif websiteName == "mtggoldfish":
         print(
-            """
+            r"""
 ___  ____        _____       _     _  __ _     _     
 |  \/  | |      |  __ \     | |   | |/ _(_)   | |    
 | .  . | |_ __ _| |  \/ ___ | | __| | |_ _ ___| |__  
@@ -71,7 +71,7 @@ ___  ____        _____       _     _  __ _     _
 """)
     elif websiteName == "archidekt":
         print(
-            """
+            r"""
   ___           _     _     _      _    _   
  / _ \         | |   (_)   | |    | |  | |  
 / /_\ \_ __ ___| |__  _  __| | ___| | _| |_ 
@@ -81,7 +81,7 @@ ___  ____        _____       _     _  __ _     _
 """)
     elif websiteName == "tappedout":
         print(
-            """
+            r"""
  _____                          _ _____       _   
 |_   _|                        | |  _  |     | |  
   | | __ _ _ __  _ __   ___  __| | | | |_   _| |_ 
@@ -189,7 +189,9 @@ class MoxField:
         # Logging
         print(f"Grabbing <{self.username}>'s public decks from " + url)
         proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
-        r = requests.get(url, proxies=proxies)
+        # https://www.th3r3p0.com/random/python-requests-and-burp-suite.html
+        r = requests.get(url)
+        print(r.text)
         j = json.loads(r.text)
         # printJson(j)
         return j
