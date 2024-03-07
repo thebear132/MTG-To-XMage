@@ -1,19 +1,15 @@
 import argparse
-#from ast import MatchSingleton
-#from cgitb import html
-#from sre_constants import INFO
 from tokenize import String
-#from zipapp import create_archive
-#from pip import main
 import requests
+import random
 import json
 import logging
-#import sys
 import os
 import re
 import html
 from bs4 import BeautifulSoup   #https://www.crummy.com/software/BeautifulSoup/bs4/doc/#navigating-the-tree
 from copy import deepcopy
+
 
 """ SHIFT + ALT + F -> FIX INDENTATION ERRORS
 # https://docs.readthedocs.io/en/stable/api/v2.html
@@ -41,6 +37,19 @@ Platforms
     
 """
 
+user_agent_list = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 14_4_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1',
+    'Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0',
+    'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0; Trident/5.0; Trident/5.0)',
+    'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0; MDDCJS)',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
+    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)',
+]
 
 def debug(args):  # Enable debugging printing
     print("debug")
@@ -188,10 +197,11 @@ class MoxField:
         )
         # Logging
         print(f"Grabbing <{self.username}>'s public decks from " + url)
-        proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
+        # proxies = {"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"}
+        # response = requests.get('http://httpbin.org/headers')
         # https://www.th3r3p0.com/random/python-requests-and-burp-suite.html
-        r = requests.get(url)
-        print(r.text)
+        
+        r = requests.get(url, headers={'User-Agent': user_agent_list[random.randint(0, len(user_agent_list)-1)]})
         j = json.loads(r.text)
         # printJson(j)
         return j
@@ -200,7 +210,7 @@ class MoxField:
         # https://api.moxfield.com/v2/decks/all/g5uBDBFSe0OzEoC_jRInQw
         url = "https://api.moxfield.com/v2/decks/all/" + deckId
         # print(f"Grabbing decklist <{deckId}>")                        #Logging
-        r = requests.get(url)
+        r = requests.get(url, headers={'User-Agent': user_agent_list[random.randint(0, len(user_agent_list)-1)]})
         jsonGet = json.loads(r.text)
 
         deckList = deepcopy(DeckListTemplate)
