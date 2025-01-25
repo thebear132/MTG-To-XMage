@@ -2,7 +2,6 @@ import browsercookie
 import requests
 import json
 
-
 # Import cookies from your default browser
 cj = browsercookie.load()
 
@@ -11,6 +10,7 @@ moxfield_cookies = requests.cookies.RequestsCookieJar()
 for cookie in cj:
     if 'moxfield.com' in cookie.domain:
         moxfield_cookies.set_cookie(cookie)
+        break
 else:
     print("Moxfield cookies not found in browsers?")
     exit(0)
@@ -47,6 +47,5 @@ session.headers.update({"Authorization": "Bearer " + access_token})
 print(session.cookies)
 
 response = session.get("https://api2.moxfield.com:443/v3/decks")
-userDecks = json.load(response.text)["decks"]
-
+userDecks = json.loads(response.text)["decks"]
 
