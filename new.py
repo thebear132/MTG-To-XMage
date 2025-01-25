@@ -19,17 +19,30 @@ for c in moxfield_cookies:
         break
 else:
     print("Refresh token not found in Moxfield cookies")
-    exit(0)
+    # exit(0)
 
 
 # Create a session
 session = requests.Session()
-session.cookies = moxfield_cookies
+# session.cookies = moxfield_cookies
 
 useragent = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
 session.headers.update({'User-Agent': useragent})
 session.proxies.update({"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"})
 session.verify = False
+
+url = (
+    "https://api.moxfield.com/v2/users/" +
+    "thebear132" + "/decks?pageNumber=1&pageSize=99999"
+)
+
+r = session.get(url)
+print(r)
+print(r.text)
+j = json.loads(r.text)
+
+exit(0)
+
 
 # Use refresh_token to retrieve Authorization token
 burp0_json={"ignoreCookie": False, "isAppLogin": False}

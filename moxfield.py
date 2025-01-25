@@ -40,11 +40,11 @@ class MoxField:
                 break
         else:
             print("Refresh token not found in Moxfield cookies")
-            exit(0)
+            # exit(0)
 
         # Create a session object used for requests
         self.session = requests.Session()
-        self.session.cookies = moxfield_cookies
+        # self.session.cookies = moxfield_cookies
         useragent = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
         self.session.headers.update({'User-Agent': useragent})
         self.session.proxies.update({"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"})
@@ -52,43 +52,33 @@ class MoxField:
         
 
     def __getUserDecks(self):
-        # Use refresh_token to retrieve Authorization token
-        burp0_json={"ignoreCookie": False, "isAppLogin": False}
-        response = self.session.post("https://api2.moxfield.com:443/v1/account/token/refresh", json=burp0_json)
-        # Verify that it worked
-        if "access_token" not in response.text:
-            print(self.session.cookies)
-            print("Didnt find token!")
-            exit(0)
-        # Retrieve Authorization token
-        access_token = json.loads(response.text)["access_token"]
-        self.session.headers.update({"Authorization": "Bearer " + access_token})
-
-        # Use Authorization token to access decks
-        response = self.session.get("https://api2.moxfield.com:443/v3/decks")
-        userDecks = json.loads(response.text)["decks"]
-        "____________________"
-        
+        url = (
+            "https://api.moxfield.com/v2/users/" +
+            self.username + "/decks?pageNumber=1&pageSize=99999"
+            )
+        r = self.session.get(url)
         j = json.loads(r.text)
         # printJson(j)
         return j
+    
 
     def __getDecklist(self, deckId):
         # https://api.moxfield.com/v2/decks/all/g5uBDBFSe0OzEoC_jRInQw
+        
         url = "https://api.moxfield.com/v2/decks/all/" + deckId
-        # print(f"Grabbing decklist <{deckId}>")                        #Logging
-        r = requests.get(url, headers={'User-Agent': user_agent_list[random.randint(0, len(user_agent_list)-1)]})
+        print(f"Grabbing decklist <{deckId}>")                        #Logging
+        r = self.session.get(url)
         jsonGet = json.loads(r.text)
 
         deckList = deepcopy(DeckListTemplate)
         deckList["format"] = jsonGet["format"]
 
         if jsonGet["commandersCount"] != 0:
-            for cmdr in jsonGet["commanders"]:
+            for card in jsonGet["commanders"]:
                 cardFormat = deepcopy(CardFormatTemplate)
-                specificCard = jsonGet["commanders"][cmdr]
+                specificCard = jsonGet["commanders"][card]
 
-                cardFormat["name"] = specificCard["card"]["name"]
+                cardFormat["name"] = card
                 cardFormat["quantity"] = specificCard["quantity"]
                 cardFormat["set"] = specificCard["card"]["set"].upper()
                 cardFormat["setNr"] = specificCard["card"]["cn"]
@@ -96,31 +86,31 @@ class MoxField:
 
         if jsonGet["companionsCount"] != 0:
             print(url)
-            for comp in jsonGet["companions"]:
+            for card in jsonGet["companions"]:
                 cardFormat = deepcopy(CardFormatTemplate)
-                specificCard = jsonGet["companions"][comp]
+                specificCard = jsonGet["companions"][card]
                 
-                cardFormat["name"] = specificCard["card"]["name"]
+                cardFormat["name"] = card
                 cardFormat["quantity"] = specificCard["quantity"]
                 cardFormat["set"] = specificCard["card"]["set"].upper()
                 cardFormat["setNr"] = specificCard["card"]["cn"]
                 deckList["companions"].append(cardFormat)
 
-        for card in jsonGet["boards"]["mainboard"]:
+        for card in jsonGet["mainboard"]:
             cardFormat = deepcopy(CardFormatTemplate)
-            specificCard = jsonGet["boards"]["mainboard"][card]
+            specificCard = jsonGet["mainboard"][card]
 
-            cardFormat["name"] = specificCard["card"]["name"]
+            cardFormat["name"] = card
             cardFormat["quantity"] = specificCard["quantity"]
             cardFormat["set"] = specificCard["card"]["set"].upper()
             cardFormat["setNr"] = specificCard["card"]["cn"]
             deckList["mainboard"].append(cardFormat)
 
-        for card in jsonGet["boards"]["sideboard"]:
+        for card in jsonGet["sideboard"]:
             cardFormat = deepcopy(CardFormatTemplate)
-            specificCard = jsonGet["boards"]["sideboard"][card]
+            specificCard = jsonGet["sideboard"][card]
 
-            cardFormat["name"] = specificCard["card"]["name"]
+            cardFormat["name"] = card
             cardFormat["quantity"] = specificCard["quantity"]
             cardFormat["set"] = specificCard["card"]["set"].upper()
             cardFormat["setNr"] = specificCard["card"]["cn"]
