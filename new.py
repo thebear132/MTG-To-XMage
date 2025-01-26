@@ -1,6 +1,29 @@
 import browsercookie
 import requests
 import json
+import textwrap
+
+
+def print_roundtrip(response, *args, **kwargs):
+    format_headers = lambda d: '\n'.join(f'{k}: {v}' for k, v in d.items())
+    print(textwrap.dedent('''
+        ---------------- request ----------------
+        {req.method} {req.url}
+        {reqhdrs}
+
+        {req.body}
+        ---------------- response ----------------
+        {res.status_code} {res.reason} {res.url}
+        {reshdrs}
+        
+        
+    ''').format(    # {res.text}
+        req=response.request, 
+        res=response, 
+        reqhdrs=format_headers(response.request.headers), 
+        reshdrs=format_headers(response.headers), 
+    ))
+
 
 # Import cookies from your default browser
 cj = browsercookie.load()
@@ -35,11 +58,13 @@ url = (
     "https://api.moxfield.com/v2/users/" +
     "thebear132" + "/decks?pageNumber=1&pageSize=99999"
 )
+# url = "https://httpbin.org/headers"
 
-r = session.get(url)
+r = session.get(url, hooks={'response': print_roundtrip})
 print(r)
-print(r.text)
-j = json.loads(r.text)
+
+# print(r.text)
+# j = json.loads(r.text)
 
 exit(0)
 
