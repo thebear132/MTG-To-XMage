@@ -131,7 +131,7 @@ def writeXmageToPath(xmageFolderPath, deckName, format, deckContent):
         os.makedirs(xmageFolderPath)
 
     # Remove bad characters
-    deckName = "".join(i for i in deckName if i not in "\/:*?<>|")
+    deckName = "".join(i for i in deckName if i not in r"\/:*?<>|")
     f = open(os.path.join(xmageFolderPath, deckName) + ".dck", "w", encoding='utf-8')
     f.write(deckContent)
     f.close()
