@@ -2,6 +2,9 @@
 A script to fetch your decks from Moxfield, MtgGoldfish, Archideckt and Tappedout to XMage `.dck` format ready to play!
 When fetching from Moxfield, the version of the card is saved over to XMage.
 
+### Prerequisites
+As this script uses the Google Chrome webdriver, you will first need to install Chrome: https://www.google.com/chrome/
+
 ### Usage
 ```
 $ git clone https://github.com/thebear132/MTG-To-XMage
