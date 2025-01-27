@@ -28,6 +28,27 @@ class MoxField:
         # printJson(j)
         return j
     
+    def __card(self, specificCard):
+        cardFormat = deepcopy(CardFormatTemplate)
+
+        cardFormat["name"] = specificCard["card"]["name"]
+        cardFormat["quantity"] = specificCard["quantity"]
+        cardFormat["set"] = specificCard["card"]["set"].upper()
+        cardFormat["setNr"] = specificCard["card"]["cn"]
+        cardFormat["layout"] = specificCard["card"]["layout"]
+        
+        # print("\n", cardFormat["name"], cardFormat["set"], cardFormat["setNr"])
+        tmp = cardFormat["setNr"][-1:]
+        if tmp.isalpha(): # If promo, convert to non-promo
+            cardFormat["setNr"] = cardFormat["setNr"][:-1]
+            cardFormat["set"] = cardFormat["set"][1:]
+        
+        if cardFormat["set"] == "PLST": # If card from the list
+            cardFormat["set"], cardFormat["setNr"] = cardFormat["setNr"].split("-")
+        
+        # print(cardFormat)
+        return cardFormat
+        
 
     def __getDecklist(self, deckId):
         # https://api.moxfield.com/v2/decks/all/g5uBDBFSe0OzEoC_jRInQw
@@ -44,61 +65,25 @@ class MoxField:
 
         if jsonGet["commandersCount"] != 0:
             for card in jsonGet["commanders"]:
-                cardFormat = deepcopy(CardFormatTemplate)
                 specificCard = jsonGet["commanders"][card]
-
-                cardFormat["name"] = card
-                cardFormat["quantity"] = specificCard["quantity"]
-                cardFormat["set"] = specificCard["card"]["set"].upper()
-                cardFormat["setNr"] = specificCard["card"]["cn"]
-                cardFormat["layout"] = specificCard["card"]["layout"]
+                cardFormat = self.__card(specificCard)
                 deckList["commanders"].append(cardFormat)
 
         if jsonGet["companionsCount"] != 0:
             print(url)
             for card in jsonGet["companions"]:
-                cardFormat = deepcopy(CardFormatTemplate)
                 specificCard = jsonGet["companions"][card]
-                
-                cardFormat["name"] = card
-                cardFormat["quantity"] = specificCard["quantity"]
-                cardFormat["set"] = specificCard["card"]["set"].upper()
-                cardFormat["setNr"] = specificCard["card"]["cn"]
-                cardFormat["layout"] = specificCard["card"]["layout"]
+                cardFormat = self.__card(specificCard)
                 deckList["companions"].append(cardFormat)
 
         for card in jsonGet["mainboard"]:
-            cardFormat = deepcopy(CardFormatTemplate)
             specificCard = jsonGet["mainboard"][card]
-
-            cardFormat["name"] = card
-            cardFormat["quantity"] = specificCard["quantity"]
-            cardFormat["set"] = specificCard["card"]["set"].upper()
-            cardFormat["setNr"] = specificCard["card"]["cn"]
-            cardFormat["layout"] = specificCard["card"]["layout"]
-            
-            # print("\n", cardFormat["name"], cardFormat["set"], cardFormat["setNr"])
-            tmp = cardFormat["setNr"][-1:]
-            if tmp.isalpha(): # If promo, convert to non-promo
-                cardFormat["setNr"] = cardFormat["setNr"][:-1]
-                cardFormat["set"] = cardFormat["set"][1:]
-            
-            if cardFormat["set"] == "PLST": # If card from the list
-                cardFormat["set"], cardFormat["setNr"] = cardFormat["setNr"].split("-")
-            
-            # print(cardFormat)
-            
+            cardFormat = self.__card(specificCard)
             deckList["mainboard"].append(cardFormat)
 
         for card in jsonGet["sideboard"]:
-            cardFormat = deepcopy(CardFormatTemplate)
             specificCard = jsonGet["sideboard"][card]
-
-            cardFormat["name"] = card
-            cardFormat["quantity"] = specificCard["quantity"]
-            cardFormat["set"] = specificCard["card"]["set"].upper()
-            cardFormat["setNr"] = specificCard["card"]["cn"]
-            cardFormat["layout"] = specificCard["card"]["layout"]
+            cardFormat = self.__card(specificCard)
             deckList["sideboard"].append(cardFormat)
 
         return deckList
