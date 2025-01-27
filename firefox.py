@@ -11,12 +11,12 @@ firefox_options.set_preference('devtools.jsonview.enabled', False)
 driver = webdriver.Firefox(options=firefox_options)
 
 print("Opening the URL...")
-url = "https://api2.moxfield.com/v2/decks/search-sfw?showIllegal=true&authorUserNames=thebear132&pageNumber=1&pageSize=9999&sortType=updated&sortDirection=descending&board=mainboard"
-old_url = "https://api.moxfield.com/v2/users/thebear132/decks?pageNumber=1&pageSize=99999"
+url = "https://api2.moxfield.com/v2/decks/search-sfw?authorUserNames=thebear132&pageNumber=1&pageSize=9999&sortType=updated"
+url = "https://api.moxfield.com/v2/users/thebear132/decks?pageNumber=1&pageSize=99999"
 driver.get(url)
 
 print("Waiting for the page to load...")
-time.sleep(1)
+time.sleep(0)
 
 print("Fetching the raw response...")
 raw_response = driver.execute_script("return document.body.innerText;")

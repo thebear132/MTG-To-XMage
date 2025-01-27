@@ -1,7 +1,6 @@
 from utils import *
 from copy import deepcopy
 
-
 user_agent_list = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
     'Mozilla/5.0 (iPhone; CPU iPhone OS 14_4_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1',
@@ -24,31 +23,7 @@ class MoxField:
         self.username = username
         self.xmageFolderPath = xmageFolderPath #+ "\\Moxfield"
         
-        # Import cookies from your default browser
-        cj = browsercookie.load()
-        # Set the session's cookies
-        moxfield_cookies = requests.cookies.RequestsCookieJar()
-        for cookie in cj:
-            if 'moxfield.com' in cookie.domain:
-                moxfield_cookies.set_cookie(cookie)
-        del cj
-
-        print(f"Found {len(moxfield_cookies)} Moxfield cookies:", [i.name for i in moxfield_cookies])
-
-        for c in moxfield_cookies:
-            if c.name == "refresh_token":
-                break
-        else:
-            print("Refresh token not found in Moxfield cookies")
-            # exit(0)
-
-        # Create a session object used for requests
-        self.session = requests.Session()
-        # self.session.cookies = moxfield_cookies
-        useragent = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
-        self.session.headers.update({'User-Agent': useragent})
-        self.session.proxies.update({"http": "http://127.0.0.1:8080", "https": "http://127.0.0.1:8080"})
-        self.session.verify = False
+        
         
 
     def __getUserDecks(self):
@@ -57,6 +32,7 @@ class MoxField:
             self.username + "/decks?pageNumber=1&pageSize=99999"
             )
         r = self.session.get(url)
+        print("Getting user decks -->", r)
         j = json.loads(r.text)
         # printJson(j)
         return j
