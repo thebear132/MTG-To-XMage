@@ -3,3 +3,4 @@
 *.out
 *.dck
 config.json
+/__pycache__
