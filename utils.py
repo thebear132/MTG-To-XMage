@@ -1,7 +1,6 @@
 from tokenize import String
 import json
 import os
-import browsercookie
 import re
 from copy import deepcopy
 import requests

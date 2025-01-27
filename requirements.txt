@@ -1,4 +1,3 @@
 requests
-browsercookie
 selenium
 bs4
