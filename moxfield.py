@@ -76,6 +76,18 @@ class MoxField:
             cardFormat["set"] = specificCard["card"]["set"].upper()
             cardFormat["setNr"] = specificCard["card"]["cn"]
             cardFormat["layout"] = specificCard["card"]["layout"]
+            
+            # print("\n", cardFormat["name"], cardFormat["set"], cardFormat["setNr"])
+            tmp = cardFormat["setNr"][-1:]
+            if tmp.isalpha(): # If promo, convert to non-promo
+                cardFormat["setNr"] = cardFormat["setNr"][:-1]
+                cardFormat["set"] = cardFormat["set"][1:]
+            
+            if cardFormat["set"] == "PLST": # If card from the list
+                cardFormat["set"], cardFormat["setNr"] = cardFormat["setNr"].split("-")
+            
+            # print(cardFormat)
+            
             deckList["mainboard"].append(cardFormat)
 
         for card in jsonGet["sideboard"]:

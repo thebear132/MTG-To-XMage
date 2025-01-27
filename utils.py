@@ -113,11 +113,12 @@ def convertDeckToXmage(deckList):
         name = card["name"]
         set = card["set"]
         setNr = card["setNr"]
+        layout = card["layout"]
 
         if "//" in name and layout != "split":
             problematicCards.append(name)
             name = name[:name.index("//")-1]
-
+        
         line = f"SB: {quantity} [{set}:{setNr}] {name}\n"
         xDeck += line
 
