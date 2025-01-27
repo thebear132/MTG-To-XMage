@@ -82,6 +82,7 @@ CardFormatTemplate = {
     "name": "",         # Lightning Bolt
     "set": "",          # M12
     "setNr": "1",       # 65
+    "layout": "normal"  # normal (transform, adventure, split, modal_dfc) (Only split cards have names with //, Fire // Ice)
 }
 
 def convertDeckToXmage(deckList):
@@ -92,15 +93,16 @@ def convertDeckToXmage(deckList):
             deckList["sideboard"].append(cmdr)
 
     xDeck = ""  #Add NAME tag NAME:Arcades Aggro
-    problematicCards = ""
+    problematicCards = []
     for card in deckList["mainboard"]:
         quantity = card["quantity"]
         name = card["name"]
         set = card["set"]
         setNr = card["setNr"]
+        layout = card["layout"]
 
-        if "//" in name:  # Fix adventure cards e.g. Bonecrusher Giant // Stomp => Bonecrusher Giant
-            problematicCards += name + "| "
+        if "//" in name and layout != "split":  # Fix adventure cards e.g. Bonecrusher Giant // Stomp => Bonecrusher Giant
+            problematicCards.append(name)
             name = name[:name.index("//")-1]
 
         line = f"{quantity} [{set}:{setNr}] {name}\n"
@@ -112,15 +114,15 @@ def convertDeckToXmage(deckList):
         set = card["set"]
         setNr = card["setNr"]
 
-        if "//" in name:
-            problematicCards += "[SB]" + name + "| "
+        if "//" in name and layout != "split":
+            problematicCards.append(name)
             name = name[:name.index("//")-1]
 
         line = f"SB: {quantity} [{set}:{setNr}] {name}\n"
         xDeck += line
 
-    if problematicCards != "":
-        print("     [!]", problematicCards.count('|'), "card(s) might not have been imported. Run in verbose mode (-v) for more info")
+    if len(problematicCards) != 0:
+        print("     [!]", len(problematicCards), "card(s) might not have been imported correctly, check your deck.")
         # logging the problematic cards here
     return xDeck
 

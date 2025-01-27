@@ -1,19 +1,10 @@
 from utils import *
 from copy import deepcopy
 
-user_agent_list = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36',
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 14_4_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Mobile/15E148 Safari/604.1',
-    'Mozilla/4.0 (compatible; MSIE 9.0; Windows NT 6.1)',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36 Edge/18.18363',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0',
-    'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.0; Trident/5.0; Trident/5.0)',
-    'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0; MDDCJS)',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393',
-    'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)',
-]
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+
 
 class MoxField:
     username = ""
@@ -23,17 +14,17 @@ class MoxField:
         self.username = username
         self.xmageFolderPath = xmageFolderPath #+ "\\Moxfield"
         
-        
-        
+        # Setup a Chrome in headless mode, which is used instead of python-requests as Cloudflare somehow knows and blocks it
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
+        self.driver = webdriver.Chrome(options=chrome_options)
 
     def __getUserDecks(self):
-        url = (
-            "https://api.moxfield.com/v2/users/" +
-            self.username + "/decks?pageNumber=1&pageSize=99999"
-            )
-        r = self.session.get(url)
-        print("Getting user decks -->", r)
-        j = json.loads(r.text)
+        url = "https://api.moxfield.com/v2/users/" + self.username + "/decks?pageNumber=1&pageSize=99999"
+        self.driver.get(url)
+        raw_response = self.driver.execute_script("return document.body.innerText;")
+        j = json.loads(raw_response)
         # printJson(j)
         return j
     
@@ -42,9 +33,11 @@ class MoxField:
         # https://api.moxfield.com/v2/decks/all/g5uBDBFSe0OzEoC_jRInQw
         
         url = "https://api.moxfield.com/v2/decks/all/" + deckId
-        print(f"Grabbing decklist <{deckId}>")                        #Logging
-        r = self.session.get(url)
-        jsonGet = json.loads(r.text)
+        # Fetch using Selenium        
+        self.driver.get(url)
+        raw_response = self.driver.execute_script("return document.body.innerText;")
+        jsonGet = json.loads(raw_response)
+
 
         deckList = deepcopy(DeckListTemplate)
         deckList["format"] = jsonGet["format"]
@@ -58,6 +51,7 @@ class MoxField:
                 cardFormat["quantity"] = specificCard["quantity"]
                 cardFormat["set"] = specificCard["card"]["set"].upper()
                 cardFormat["setNr"] = specificCard["card"]["cn"]
+                cardFormat["layout"] = specificCard["card"]["layout"]
                 deckList["commanders"].append(cardFormat)
 
         if jsonGet["companionsCount"] != 0:
@@ -70,6 +64,7 @@ class MoxField:
                 cardFormat["quantity"] = specificCard["quantity"]
                 cardFormat["set"] = specificCard["card"]["set"].upper()
                 cardFormat["setNr"] = specificCard["card"]["cn"]
+                cardFormat["layout"] = specificCard["card"]["layout"]
                 deckList["companions"].append(cardFormat)
 
         for card in jsonGet["mainboard"]:
@@ -80,6 +75,7 @@ class MoxField:
             cardFormat["quantity"] = specificCard["quantity"]
             cardFormat["set"] = specificCard["card"]["set"].upper()
             cardFormat["setNr"] = specificCard["card"]["cn"]
+            cardFormat["layout"] = specificCard["card"]["layout"]
             deckList["mainboard"].append(cardFormat)
 
         for card in jsonGet["sideboard"]:
@@ -90,6 +86,7 @@ class MoxField:
             cardFormat["quantity"] = specificCard["quantity"]
             cardFormat["set"] = specificCard["card"]["set"].upper()
             cardFormat["setNr"] = specificCard["card"]["cn"]
+            cardFormat["layout"] = specificCard["card"]["layout"]
             deckList["sideboard"].append(cardFormat)
 
         return deckList

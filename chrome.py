@@ -17,13 +17,30 @@ driver.get(url)
 
 print("Waiting for the page to load...")
 time.sleep(0)
+print("Fetching the raw response...")
+raw_response = driver.execute_script("return document.body.innerText;")
 
+print("Raw response fetched successfully!")
+print(raw_response)
+userDecks = json.loads(raw_response)["data"]
+print("User decks found:", len(userDecks))
+
+# ____________________________________
+
+url = "https://api.moxfield.com/v2/decks/all/lJfusTFAWUiRTuikdUSRZg"
+driver.get(url)
+
+print("Waiting for the page to load...")
+time.sleep(0)
 print("Fetching the raw response...")
 raw_response = driver.execute_script("return document.body.innerText;")
 print("Raw response fetched successfully!")
 print(raw_response)
-userDecks = json.loads(raw_response)["data"]
-print(len(userDecks))
+userDecks = json.loads(raw_response)
+print("Deck found:", userDecks["name"])
+
+
+
 
 driver.quit()
 print("Browser closed.")
