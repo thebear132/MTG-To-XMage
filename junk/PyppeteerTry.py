@@ -5,7 +5,7 @@ import json
 async def main():
     browser = await launch(headless=True)
     page = await browser.newPage()
-    await page.setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
+    await page.setUserAgent("Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0")
 
     print("Opening the URL...")
     url = "https://api2.moxfield.com/v2/decks/search-sfw?authorUserNames=thebear132&pageNumber=1&pageSize=9999&sortType=updated"
