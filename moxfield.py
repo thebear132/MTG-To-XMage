@@ -14,7 +14,7 @@ class MoxField:
         self.xmageFolderPath = xmageFolderPath #+ "\\Moxfield"
         
         # Playwright: Install Firefox driver automatically with
-        subprocess.run(["playwright", "install", "firefox"], check=True)
+        subprocess.run(["python", "-m", "playwright", "install", "firefox"], check=True)
         # Start Playwright and launch browser
         self.p = sync_playwright().start()
         self.browser = self.p.firefox.launch()
