@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup   #https://www.crummy.com/software/BeautifulSoup/bs4/doc/#navigating-the-tree
 import html
 import random
+import cloudscraper
 
 def printJson(j):
     print(json.dumps(j, indent=4))
@@ -137,3 +138,89 @@ def writeXmageToPath(xmageFolderPath, deckName, format, deckContent):
     f = open(os.path.join(xmageFolderPath, deckName) + ".dck", "w", encoding='utf-8')
     f.write(deckContent)
     f.close()
+
+
+
+
+# Moxfield helpers, you can copy them inside your Moxfield class or keep them here idk
+
+def getMoxfieldExportId(deck_id):
+    url = f"https://api2.moxfield.com/v3/decks/all/{deck_id}"
+    
+    scraper = cloudscraper.create_scraper()
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+        "Accept": "application/json"
+    }
+    
+    response = scraper.get(url, headers=headers)
+
+    if response.status_code == 200:
+        data = response.json()
+        exportId = data.get("exportId","")
+        # print(exportId)
+        return exportId
+    
+    else:
+        print(response.status_code, response.text)
+    
+    return ""
+
+
+def getUserDecklistsInfo(username):
+    #  @returns: (An array of tuples with deckname and deck id...You may never need the deckname and decide to ditch it,but returning it as well doesn't hurt)
+    url = f"https://api.moxfield.com/v2/users/{username}/decks?pageNumber=1&pageSize=99999"
+    
+    scraper = cloudscraper.create_scraper()
+    
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+        "Accept": "application/json"
+    }
+    
+    response = scraper.get(url, headers=headers)
+
+    if response.status_code == 200:
+        data = response.json()
+        deck_info = []
+        for deck in data["data"]:
+            deck_name = deck["name"]
+            deck_id = deck["publicId"]
+            deck_info.append((deck_name, deck_id))
+            
+        return deck_info
+    
+    else:
+        print(response.status_code, response.text)
+    
+    return []
+
+def getMoxfieldDecklist(username):
+    user_decks = getUserDecklistsInfo(username)
+    deck_list = {}
+    
+    for deck_name, deck_id in user_decks:
+        export_id = getMoxfieldExportId(deck_id)
+        url = f"https://api2.moxfield.com/v2/decks/all/{deck_id}/export?arenaOnly=false&format=mtgo&exportId={export_id}&pricingProvider=cardkingdom"
+        scraper = cloudscraper.create_scraper()
+
+        headers = {
+            # TODO - cycle dynamically through UAs
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+            "Accept": "text/html; charset=utf-8"
+        }
+
+        response = scraper.get(url, headers=headers)
+        if response.status_code == 200:
+            deck_list[deck_name] = response.text
+        else:
+            print(f"Failed to fetch deck {deck_name}: {response.status_code}")
+        
+        for deck_name, deck_list_text in deck_list.items():
+            print(f'["{deck_name}": "{deck_list_text}"]')
+            
+    return deck_list
+
+# Call this like :
+# getMoxfieldDecklist("crimxon")
