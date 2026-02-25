@@ -70,6 +70,7 @@ def logResponse(name, r):  # Logs the request to a .html file for reviewing
 
 
 DeckListTemplate = {  # Remember to deepcopy() when copying this template
+#    "name" : ""         # Name                         Forge need deck name inside xDeck (I didn't manage to make it works)
     "format": "",       # Format
     "companions": [],   # List of <CardFormatTemplate>
     "commanders": [],   # List of <CardFormatTemplate>
@@ -126,8 +127,81 @@ def convertDeckToXmage(deckList):
         # logging the problematic cards here
     return xDeck
 
+def convertDeckToForge(deckList):       #Based on convertDeckToXmage code
+
+    xDeck = ""
+    problematicCards = []
+
+    xDeck += "[Main]\n"
+    for card in deckList["mainboard"]:
+        quantity = card["quantity"]
+        name = card["name"]
+        set = card["set"]
+        setNr = card["setNr"]
+        layout = card["layout"]
+
+        if "//" in name and layout != "split":  # Fix adventure cards e.g. Bonecrusher Giant // Stomp => Bonecrusher Giant
+            problematicCards.append(name)
+            name = name[:name.index("//")-1]
+
+        line = f"{quantity} {name}|{set}|[{setNr}]\n"
+        xDeck += line
+    
+    if deckList["sideboard"]:
+        xDeck += "[Sideboard]\n"
+        for card in deckList["sideboard"]:
+            quantity = card["quantity"]
+            name = card["name"]
+            set = card["set"]
+            setNr = card["setNr"]
+            layout = card["layout"]
+
+            if "//" in name and layout != "split":
+                problematicCards.append(name)
+                name = name[:name.index("//")-1]
+            
+            line = f"{quantity} {name}|{set}|[{setNr}]\n"
+            xDeck += line
+
+    if deckList["format"] == "commander":
+        xDeck += "[Commander]\n"
+        for card in deckList["commanders"]:
+            quantity = card["quantity"]
+            name = card["name"]
+            set = card["set"]
+            setNr = card["setNr"]
+            layout = card["layout"]
+
+            if "//" in name and layout != "split":  # Fix adventure cards e.g. Bonecrusher Giant // Stomp => Bonecrusher Giant
+                problematicCards.append(name)
+                name = name[:name.index("//")-1]
+
+            line = f"{quantity} {name}|{set}|[{setNr}]\n"
+            xDeck += line
+
+    if len(problematicCards) != 0:
+        print("     [!]", len(problematicCards), "card(s) might not have been imported correctly, check your deck.")
+        # logging the problematic cards here
+
+    return xDeck
+
 def writeXmageToPath(xmageFolderPath, deckName, format, deckContent):
     #print(xmageFolderPath + "\\" + deckName + ".dck")                    #Logging
+    xmageFolderPath = os.path.join(xmageFolderPath, format)
+    if not (os.path.exists(xmageFolderPath)):
+        os.makedirs(xmageFolderPath)
+
+    # Remove bad characters
+    deckName = "".join(i for i in deckName if i not in r"\/:*?<>|")
+    f = open(os.path.join(xmageFolderPath, deckName) + ".dck", "w", encoding='utf-8')
+    f.write(deckContent)
+    f.close()
+
+def writeForgeToPath(xmageFolderPath, deckName, format, deckContent):    #Based on writeXmageToPath code
+    #print(xmageFolderPath + "\\" + deckName + ".dck")                    #Logging
+    if format not in ["commander","brawl","oathbreaker"]:                 #Forge seems to only support these special formats, others falls inside constructed
+        format = "constructed"
+    deckContent = "".join(("[metadata]\nName=", deckName, "\n", deckContent)) #Forge needs deck name inside xDeck (Was placed here because I didn't found a variable containing the deck name inside convertDeckToForge()) See line 73
     xmageFolderPath = os.path.join(xmageFolderPath, format)
     if not (os.path.exists(xmageFolderPath)):
         os.makedirs(xmageFolderPath)
