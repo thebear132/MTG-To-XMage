@@ -50,6 +50,7 @@ class MoxField:
         elif cardFormat["setNr"][-1:] =="★": # Forge doesn't support foils → need to remove "★". 
             cardFormat["setNr"] = cardFormat["setNr"][:-1]
 
+        
         if cardFormat["set"] == "PLST": # If card from the list
             cardFormat["set"], cardFormat["setNr"] = cardFormat["setNr"].split("-")
         
@@ -66,6 +67,7 @@ class MoxField:
         page.goto(url)
         raw_response = page.inner_html("pre")
         jsonGet = json.loads(raw_response)
+
 
         deckList = deepcopy(DeckListTemplate)
         deckList["format"] = jsonGet["format"]
@@ -93,6 +95,10 @@ class MoxField:
             specificCard = jsonGet["sideboard"][card]
             cardFormat = self.__formatCard(specificCard)
             deckList["sideboard"].append(cardFormat)
+
+        for card in jsonGet["signatureSpells"]:             #Forge oathbreaker signature spell's are placed inside [commander] section
+            specificCard = jsonGet["signatureSpells"][card]
+            deckList["commanders"].append(cardFormat)
 
         return deckList
 
