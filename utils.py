@@ -70,7 +70,7 @@ def logResponse(name, r):  # Logs the request to a .html file for reviewing
 
 
 DeckListTemplate = {  # Remember to deepcopy() when copying this template
-#    "name" : ""         # Name                         Forge need deck name inside xDeck (I didn't manage to make it works)
+#    "name" : ""         # Name                         Forge need deck inside xDeck (I didn't manage to make it works)
     "format": "",       # Format
     "companions": [],   # List of <CardFormatTemplate>
     "commanders": [],   # List of <CardFormatTemplate>
@@ -127,7 +127,7 @@ def convertDeckToXmage(deckList):
         # logging the problematic cards here
     return xDeck
 
-def convertDeckToForge(deckList):       #Based on convertDeckToXmage code
+def convertDeckToForge(deckList):
 
     xDeck = ""
     problematicCards = []
@@ -163,7 +163,7 @@ def convertDeckToForge(deckList):       #Based on convertDeckToXmage code
             line = f"{quantity} {name}|{set}|[{setNr}]\n"
             xDeck += line
 
-    if deckList["format"] == "commander":
+    if deckList["commanders"]:
         xDeck += "[Commander]\n"
         for card in deckList["commanders"]:
             quantity = card["quantity"]
@@ -197,9 +197,13 @@ def writeXmageToPath(xmageFolderPath, deckName, format, deckContent):
     f.write(deckContent)
     f.close()
 
-def writeForgeToPath(xmageFolderPath, deckName, format, deckContent):    #Based on writeXmageToPath code
+def writeForgeToPath(xmageFolderPath, deckName, format, deckContent):
     #print(xmageFolderPath + "\\" + deckName + ".dck")                    #Logging
-    if format not in ["commander","brawl","oathbreaker"]:                 #Forge seems to only support these special formats, others falls inside constructed
+    if format == "tinyLeaders":
+        format = "tiny_leaders"     # Forge tiny leaders folder is "tiny_leaders"
+    elif format == "historicBrawl":
+        format = "brawl"
+    elif format not in ["commander","brawl","oathbreaker"]:                 #Forge seems to only support these special formats, others falls inside constructed
         format = "constructed"
     deckContent = "".join(("[metadata]\nName=", deckName, "\n", deckContent)) #Forge needs deck name inside xDeck (Was placed here because I didn't found a variable containing the deck name inside convertDeckToForge()) See line 73
     xmageFolderPath = os.path.join(xmageFolderPath, format)
