@@ -25,7 +25,7 @@ class MoxField:
         self.p.stop()
 
     def __getUserDecks(self):
-        url = "https://api.moxfield.com/v2/users/" + self.username + "/decks?pageNumber=1&pageSize=99999"
+        url = "https://api2.moxfield.com/v2/decks/search?includePinned=true&showIllegal=true&authorUserNames=" + self.username + "&pageNumber=1&pageSize=99999&sortType=updated&sortDirection=descending"
         page = self.browser.new_page()
         page.goto(url)
         raw_response = page.inner_html("pre")
@@ -107,4 +107,3 @@ class MoxField:
             xDeck = convertDeckToXmage(deckJson)
             writeXmageToPath(self.xmageFolderPath,
                              deckName["name"], deckName["format"], xDeck)
-
