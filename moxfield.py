@@ -47,6 +47,9 @@ class MoxField:
         if tmp.isalpha(): # If promo, convert to non-promo
             cardFormat["setNr"] = cardFormat["setNr"][:-1]
             cardFormat["set"] = cardFormat["set"][1:]
+        elif cardFormat["setNr"][-1:] =="★": # Forge doesn't support foils → need to remove "★". 
+            cardFormat["setNr"] = cardFormat["setNr"][:-1]
+
         
         if cardFormat["set"] == "PLST": # If card from the list
             cardFormat["set"], cardFormat["setNr"] = cardFormat["setNr"].split("-")
@@ -68,6 +71,7 @@ class MoxField:
 
         deckList = deepcopy(DeckListTemplate)
         deckList["format"] = jsonGet["format"]
+#        decklist["name"] = jsonGet["name"]     Forge need deck inside xDeck (I didn't manage to make it works) See Utils line 73
 
         if jsonGet["commandersCount"] != 0:
             for card in jsonGet["commanders"]:
@@ -92,6 +96,10 @@ class MoxField:
             cardFormat = self.__formatCard(specificCard)
             deckList["sideboard"].append(cardFormat)
 
+        for card in jsonGet["signatureSpells"]:             #Forge oathbreaker signature spell's are placed inside [commander] section
+            specificCard = jsonGet["signatureSpells"][card]
+            deckList["commanders"].append(cardFormat)
+
         return deckList
 
     def Download(self):
@@ -104,6 +112,6 @@ class MoxField:
                   len(deckName["name"]) - len(str(i))) + deckName["publicUrl"])
             i = i + 1
             deckJson = self.__getDecklist(deckName["publicId"])
-            xDeck = convertDeckToXmage(deckJson)
-            writeXmageToPath(self.xmageFolderPath,
+            xDeck = convertDeckToForge(deckJson)                                #Hard replace with Forge function. I don't know how args works
+            writeForgeToPath(self.xmageFolderPath,                              #Hard replace with Forge function. I don't know how args works
                              deckName["name"], deckName["format"], xDeck)
